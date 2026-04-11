@@ -18,14 +18,15 @@ export async function* streamChat(messages: ChatMessage[]) {
       'X-Title': 'CARE AI CRM',
     },
     body: JSON.stringify({
-      model: 'anthropic/claude-haiku-3',
+      model: 'anthropic/claude-3-haiku',
       messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
       stream: true,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter error: ${response.status} ${response.statusText}`);
+    const body = await response.text().catch(() => '');
+    throw new Error(`OpenRouter ${response.status}: ${response.statusText} — ${body}`);
   }
 
   const reader = response.body!.getReader();

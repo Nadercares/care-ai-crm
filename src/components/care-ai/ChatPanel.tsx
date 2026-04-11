@@ -31,13 +31,13 @@ export function ChatPanel() {
           return updated;
         });
       }
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       setMessages((prev) => {
         const updated = [...prev];
         updated[updated.length - 1] = {
           role: 'assistant',
-          content:
-            'Error: Could not reach the AI. Check your VITE_OPENROUTER_API_KEY in .env.local.',
+          content: `Error: ${msg}`,
         };
         return updated;
       });
