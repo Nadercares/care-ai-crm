@@ -29,6 +29,31 @@
     <link rel="apple-touch-icon" sizes="192x192" href="./appIcon/192.png" />
     <link rel="apple-touch-icon" sizes="1024x1024" href="./appIcon/1024.png" />
     <title>CARE AI CRM</title>
+    <script>
+      // Force dark theme before React mounts to prevent flash of white
+      (function () {
+        var stored = localStorage.getItem('theme');
+        if (!stored || stored === 'system') {
+          localStorage.setItem('theme', 'dark');
+        }
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+
+        // Patch stored CRM config title if it still says Atomic CRM
+        ['RaStore.0.app.configuration', '0.app.configuration', 'app.configuration'].forEach(function (k) {
+          try {
+            var raw = localStorage.getItem(k);
+            if (raw) {
+              var config = JSON.parse(raw);
+              if (config.title === 'Atomic CRM') {
+                config.title = 'CARE AI CRM';
+                localStorage.setItem(k, JSON.stringify(config));
+              }
+            }
+          } catch (e) {}
+        });
+      })();
+    </script>
 
     <style>
       body {
