@@ -3,7 +3,7 @@ import { ChatPanel } from "./components/care-ai/ChatPanel";
 
 const App = () => (
   <>
-    <CRM />
+    <CRM title="CARE AI CRM" />
     <ChatPanel />
   </>
 );

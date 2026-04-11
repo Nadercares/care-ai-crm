@@ -23,9 +23,17 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   };
 
   return (
-    <div className="flex gap-2 p-3 border-t border-gray-200">
+    <div
+      className="flex gap-2 p-3 flex-shrink-0"
+      style={{ backgroundColor: '#0A1628', borderTop: '1px solid rgba(201,168,76,0.2)' }}
+    >
       <textarea
-        className="flex-1 resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex-1 resize-none rounded-md px-3 py-2 text-sm focus:outline-none"
+        style={{
+          backgroundColor: 'rgba(255,255,255,0.07)',
+          border: '1px solid rgba(201,168,76,0.25)',
+          color: 'rgba(255,255,255,0.9)',
+        }}
         rows={2}
         placeholder="Ask about your contacts, deals, or claims..."
         value={value}
@@ -34,7 +42,8 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
         disabled={disabled}
       />
       <button
-        className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-4 py-2 text-sm rounded-md disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+        style={{ backgroundColor: '#C9A84C', color: '#0A1628' }}
         onClick={handleSend}
         disabled={disabled || !value.trim()}
       >
