@@ -40,7 +40,15 @@
         document.documentElement.classList.add('dark');
 
         // Patch stored CRM config title if it still says Atomic CRM
-        ['RaStore.0.app.configuration', '0.app.configuration', 'app.configuration'].forEach(function (k) {
+        // localStorageStore(undefined, "CRM") → key: "CRM.undefined.app.configuration"
+        var configKeys = [
+          'CRM.undefined.app.configuration',
+          'CRM.1.app.configuration',
+          'RaStore.0.app.configuration',
+          '0.app.configuration',
+          'app.configuration',
+        ];
+        configKeys.forEach(function (k) {
           try {
             var raw = localStorage.getItem(k);
             if (raw) {
@@ -81,7 +89,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: #0A1628;
+        background-color: #162C52;
       }
 
       /* CSS Spinner from https://projects.lukehaas.me/css-loaders/ */
@@ -115,7 +123,7 @@
       .loader:before {
         width: 5.2em;
         height: 10.2em;
-        background: #0A1628;
+        background: #162C52;
         border-radius: 10.2em 0 0 10.2em;
         top: -0.1em;
         left: -0.1em;
@@ -128,7 +136,7 @@
       .loader:after {
         width: 5.2em;
         height: 10.2em;
-        background: #0A1628;
+        background: #162C52;
         border-radius: 0 10.2em 10.2em 0;
         top: -0.1em;
         left: 5.1em;

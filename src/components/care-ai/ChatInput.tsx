@@ -25,7 +25,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   return (
     <div
       className="flex gap-2 p-3 flex-shrink-0"
-      style={{ backgroundColor: '#0A1628', borderTop: '1px solid rgba(201,168,76,0.2)' }}
+      style={{ backgroundColor: '#162C52', borderTop: '1px solid rgba(201,168,76,0.2)' }}
     >
       <textarea
         className="flex-1 resize-none rounded-md px-3 py-2 text-sm focus:outline-none"
@@ -43,7 +43,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
       />
       <button
         className="px-4 py-2 text-sm rounded-md disabled:opacity-40 disabled:cursor-not-allowed font-medium"
-        style={{ backgroundColor: '#C9A84C', color: '#0A1628' }}
+        style={{ backgroundColor: '#C9A84C', color: '#162C52' }}
         onClick={handleSend}
         disabled={disabled || !value.trim()}
       >

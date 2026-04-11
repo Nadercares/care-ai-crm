@@ -11,7 +11,7 @@ export function ChatMessage({ role, content }: ChatMessageProps) {
         className="max-w-[80%] rounded-lg px-4 py-2 text-sm"
         style={
           isUser
-            ? { backgroundColor: '#C9A84C', color: '#0A1628', fontWeight: 500 }
+            ? { backgroundColor: '#C9A84C', color: '#162C52', fontWeight: 500 }
             : { backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.88)' }
         }
       >

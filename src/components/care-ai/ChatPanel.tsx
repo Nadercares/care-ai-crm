@@ -52,7 +52,7 @@ export function ChatPanel() {
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl"
-        style={{ backgroundColor: '#C9A84C', color: '#0A1628' }}
+        style={{ backgroundColor: '#C9A84C', color: '#162C52' }}
         aria-label="Toggle AI Chat"
       >
         {isOpen ? '✕' : '💬'}
@@ -67,7 +67,7 @@ export function ChatPanel() {
           {/* Header — dark navy with gold text */}
           <div
             className="px-4 py-3 flex-shrink-0"
-            style={{ backgroundColor: '#0A1628', borderBottom: '1px solid rgba(201,168,76,0.4)' }}
+            style={{ backgroundColor: '#162C52', borderBottom: '1px solid rgba(201,168,76,0.4)' }}
           >
             <h3 className="font-semibold text-sm" style={{ color: '#C9A84C' }}>
               CARE AI Assistant
