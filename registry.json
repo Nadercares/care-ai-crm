@@ -338,6 +338,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/policy-review/extractPdfText.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/policy-review/PolicyReviewPage.tsx",
           "type": "registry:component"
         },

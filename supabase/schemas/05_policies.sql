@@ -67,3 +67,42 @@ create policy "Enable update for admins" on public.configuration for update to a
 
 -- Favicons excluded domains
 create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);
+
+--
+-- CARE claims intelligence
+--
+alter table public.carriers enable row level security;
+alter table public.carrier_adjusters enable row level security;
+alter table public.claims enable row level security;
+alter table public.claim_estimates enable row level security;
+alter table public.policy_analyses enable row level security;
+
+-- Carriers
+create policy "Enable read access for authenticated users" on public.carriers for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.carriers for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.carriers for update to authenticated using (true) with check (true);
+create policy "Enable delete for authenticated users only" on public.carriers for delete to authenticated using (true);
+
+-- Carrier Adjusters
+create policy "Enable read access for authenticated users" on public.carrier_adjusters for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.carrier_adjusters for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.carrier_adjusters for update to authenticated using (true) with check (true);
+create policy "Enable delete for authenticated users only" on public.carrier_adjusters for delete to authenticated using (true);
+
+-- Claims
+create policy "Enable read access for authenticated users" on public.claims for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.claims for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.claims for update to authenticated using (true) with check (true);
+create policy "Enable delete for authenticated users only" on public.claims for delete to authenticated using (true);
+
+-- Claim Estimates
+create policy "Enable read access for authenticated users" on public.claim_estimates for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.claim_estimates for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.claim_estimates for update to authenticated using (true) with check (true);
+create policy "Enable delete for authenticated users only" on public.claim_estimates for delete to authenticated using (true);
+
+-- Policy Analyses
+create policy "Enable read access for authenticated users" on public.policy_analyses for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.policy_analyses for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.policy_analyses for update to authenticated using (true) with check (true);
+create policy "Enable delete for authenticated users only" on public.policy_analyses for delete to authenticated using (true);

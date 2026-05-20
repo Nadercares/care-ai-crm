@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { analyzePolicy, type PolicyAnalysis } from "@/api/policy";
+import { extractPdfText } from "./extractPdfText";
 
 type Status = "idle" | "loading" | "error" | "done";
+type PdfStatus = "idle" | "extracting" | "ready" | "error";
 
 // Keep in sync with MIN_POLICY_CHARS in the analyze_policy edge function.
 const MIN_POLICY_CHARS = 50;
@@ -29,9 +31,41 @@ export const PolicyReviewPage = () => {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
   const [analysis, setAnalysis] = useState<PolicyAnalysis | null>(null);
+  const [pdfStatus, setPdfStatus] = useState<PdfStatus>("idle");
+  const [pdfNote, setPdfNote] = useState("");
 
   const charCount = policyText.trim().length;
-  const canAnalyze = charCount >= MIN_POLICY_CHARS && status !== "loading";
+  const canAnalyze =
+    charCount >= MIN_POLICY_CHARS &&
+    status !== "loading" &&
+    pdfStatus !== "extracting";
+
+  const handlePdfFile = async (file: File | undefined) => {
+    if (!file) return;
+    setPdfStatus("extracting");
+    setPdfNote("");
+    setError("");
+    try {
+      const { text, pageCount, likelyScanned } = await extractPdfText(file);
+      setPolicyText(text);
+      if (likelyScanned) {
+        setPdfStatus("error");
+        setPdfNote(
+          `Extracted ${pageCount} page(s) but found almost no text. ` +
+            "This is likely a scanned PDF — OCR is not supported yet, so " +
+            "paste the policy text manually.",
+        );
+      } else {
+        setPdfStatus("ready");
+        setPdfNote(`Extracted text from ${file.name} (${pageCount} page(s)).`);
+      }
+    } catch (err) {
+      setPdfStatus("error");
+      setPdfNote(
+        `Could not read PDF: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  };
 
   const handleAnalyze = async () => {
     setStatus("loading");
@@ -70,8 +104,34 @@ export const PolicyReviewPage = () => {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
+            <Label htmlFor="policy-pdf">Upload a policy PDF</Label>
+            <Input
+              id="policy-pdf"
+              type="file"
+              accept="application/pdf,.pdf"
+              disabled={pdfStatus === "extracting"}
+              onChange={(e) => handlePdfFile(e.target.files?.[0])}
+            />
+            {pdfStatus === "extracting" && (
+              <span className="text-xs text-muted-foreground">
+                Extracting text from PDF...
+              </span>
+            )}
+            {pdfNote && (
+              <span
+                className={
+                  pdfStatus === "error"
+                    ? "text-xs text-destructive"
+                    : "text-xs text-muted-foreground"
+                }
+              >
+                {pdfNote}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="policy-text">
-              Paste the full policy or declarations page
+              Or paste the full policy or declarations page
             </Label>
             <Textarea
               id="policy-text"

@@ -160,6 +160,47 @@ grant all on sequence public.tasks_id_seq to anon;
 grant all on sequence public.tasks_id_seq to authenticated;
 grant all on sequence public.tasks_id_seq to service_role;
 
+-- CARE claims intelligence
+grant all on table public.carriers to anon;
+grant all on table public.carriers to authenticated;
+grant all on table public.carriers to service_role;
+
+grant all on table public.carrier_adjusters to anon;
+grant all on table public.carrier_adjusters to authenticated;
+grant all on table public.carrier_adjusters to service_role;
+
+grant all on table public.claims to anon;
+grant all on table public.claims to authenticated;
+grant all on table public.claims to service_role;
+
+grant all on table public.claim_estimates to anon;
+grant all on table public.claim_estimates to authenticated;
+grant all on table public.claim_estimates to service_role;
+
+grant all on table public.policy_analyses to anon;
+grant all on table public.policy_analyses to authenticated;
+grant all on table public.policy_analyses to service_role;
+
+grant all on sequence public.carriers_id_seq to anon;
+grant all on sequence public.carriers_id_seq to authenticated;
+grant all on sequence public.carriers_id_seq to service_role;
+
+grant all on sequence public.carrier_adjusters_id_seq to anon;
+grant all on sequence public.carrier_adjusters_id_seq to authenticated;
+grant all on sequence public.carrier_adjusters_id_seq to service_role;
+
+grant all on sequence public.claims_id_seq to anon;
+grant all on sequence public.claims_id_seq to authenticated;
+grant all on sequence public.claims_id_seq to service_role;
+
+grant all on sequence public.claim_estimates_id_seq to anon;
+grant all on sequence public.claim_estimates_id_seq to authenticated;
+grant all on sequence public.claim_estimates_id_seq to service_role;
+
+grant all on sequence public.policy_analyses_id_seq to anon;
+grant all on sequence public.policy_analyses_id_seq to authenticated;
+grant all on sequence public.policy_analyses_id_seq to service_role;
+
 -- Default privileges
 alter default privileges for role postgres in schema public grant all on sequences to postgres;
 alter default privileges for role postgres in schema public grant all on sequences to anon;
