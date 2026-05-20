@@ -23,6 +23,8 @@ const Header = () => {
     currentPath = "/companies";
   } else if (matchPath("/deals/*", location.pathname)) {
     currentPath = "/deals";
+  } else if (matchPath("/policy-review/*", location.pathname)) {
+    currentPath = "/policy-review";
   } else {
     currentPath = false;
   }
@@ -76,6 +78,11 @@ const Header = () => {
                     })}
                     to="/deals"
                     isActive={currentPath === "/deals"}
+                  />
+                  <NavigationTab
+                    label="Policy Review"
+                    to="/policy-review"
+                    isActive={currentPath === "/policy-review"}
                   />
                 </nav>
               </div>
