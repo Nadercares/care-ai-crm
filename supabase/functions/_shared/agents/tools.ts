@@ -483,6 +483,25 @@ const getCarrierIntelligence: ToolDefinition = {
   },
 };
 
+const getEstimates: ToolDefinition = {
+  schema: {
+    name: "get_estimates",
+    description:
+      "Get the estimates entered on this claim — typically the insurance carrier's estimate and the public adjuster's or contractor's estimate — each with its source, totals (RCV, ACV, depreciation, deductible) and detail. Use this to compare them.",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async (_input, ctx) => {
+    const { data } = await supabaseAdmin
+      .from("estimates")
+      .select(
+        "id, source, label, total_rcv, total_acv, depreciation, deductible, content, created_at",
+      )
+      .eq("deal_id", ctx.dealId)
+      .order("created_at", { ascending: true });
+    return { estimates: data ?? [] };
+  },
+};
+
 export const TOOLS: Record<string, ToolDefinition> = {
   get_claim: getClaim,
   get_policy: getPolicy,
@@ -493,6 +512,7 @@ export const TOOLS: Record<string, ToolDefinition> = {
   get_claim_emails: getClaimEmails,
   get_weather_data: getWeatherData,
   get_carrier_intelligence: getCarrierIntelligence,
+  get_estimates: getEstimates,
   get_agent_outputs: getAgentOutputs,
   create_task: createTask,
 };

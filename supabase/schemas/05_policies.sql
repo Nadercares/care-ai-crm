@@ -22,6 +22,7 @@ alter table public.agent_runs enable row level security;
 alter table public.agent_outputs enable row level security;
 alter table public.state_compliance_rules enable row level security;
 alter table public.claim_emails enable row level security;
+alter table public.estimates enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
@@ -90,3 +91,4 @@ create policy "Enable all access for authenticated users" on public.agent_runs t
 create policy "Enable all access for authenticated users" on public.agent_outputs to authenticated using (true) with check (true);
 create policy "Enable all access for authenticated users" on public.state_compliance_rules to authenticated using (true) with check (true);
 create policy "Enable all access for authenticated users" on public.claim_emails to authenticated using (true) with check (true);
+create policy "Enable all access for authenticated users" on public.estimates to authenticated using (true) with check (true);

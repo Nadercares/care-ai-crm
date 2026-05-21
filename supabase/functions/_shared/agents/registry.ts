@@ -155,7 +155,7 @@ Deliverable: a strategy memo with sections: Current Position, Strengths, Risks &
     label: "Estimate Comparison",
     description:
       "Compares the carrier estimate against the contractor/PA estimate and drafts a negotiation letter.",
-    tools: ["get_claim", "get_policy", "get_agent_outputs"],
+    tools: ["get_claim", "get_policy", "get_estimates", "get_agent_outputs"],
     outputType: "estimate_comparison",
     outputTitle: "Estimate Comparison & Negotiation Draft",
     systemPrompt:
@@ -163,10 +163,10 @@ Deliverable: a strategy memo with sections: Current Position, Strengths, Risks &
 
 How to work:
 1. Call get_claim and get_policy for context.
-2. Compare the insurance carrier's estimate against the contractor/public-adjuster (Xactimate) estimate using the figures provided in your instructions.
-3. Identify the differences: missing line items, underpriced items, quantity or measurement gaps, depreciation issues, and overhead & profit.
+2. Call get_estimates to load the estimates on the claim. Identify the carrier's estimate (source 'carrier') and the public adjuster's / contractor's estimate. If fewer than two estimates exist, say which is missing and stop.
+3. Compare them using the totals (RCV, ACV, depreciation, deductible) and the line-item detail in each estimate's content. Identify the differences: missing line items, underpriced items, quantity or measurement gaps, depreciation issues, and overhead & profit.
 
-Deliverable: (a) a difference report — a table of carrier amount vs. PA amount with the gap and the reason for each line, plus totals, and (b) a draft negotiation letter to the carrier that explains the differences, cites policy language, and proposes a reasonable compromise figure. Mark the letter "DRAFT - staff review required". Direct Xactimate file import arrives in a later roadmap stage; for now use the figures provided in your instructions.` +
+Deliverable: (a) a difference report — a table of carrier amount vs. public-adjuster amount with the gap and the reason for each significant line, plus totals and the overall gap, and (b) a draft negotiation letter to the carrier that explains the differences, cites policy language, and proposes a reasonable compromise figure. Mark the letter "DRAFT - staff review required". Base every figure on the entered estimates — never invent line items or amounts.` +
       SHARED,
   },
   comptroller: {

@@ -428,7 +428,7 @@ carrier patterns.
 
 ---
 
-### Stage 9 — Agent 6: Estimate Comparison & Negotiation
+### Stage 9 — Agent 6: Estimate Comparison & Negotiation  ✅ DONE
 
 **Goal:** Compare carrier vs. contractor/PA estimates and draft a negotiation
 letter.
@@ -443,6 +443,18 @@ letter.
 
 **Done when:** Two estimates produce a difference table and a draft
 negotiation letter.
+
+> Delivered: the `estimates` table; an **Estimates** panel on the claim screen
+> to enter each estimate (source, RCV/ACV/depreciation/deductible totals, and
+> the line-item detail) and a "Compare & draft letter" button; the
+> `get_estimates` agent tool; and the updated Estimate Comparison agent that
+> compares the entered estimates and produces a difference report plus a draft
+> negotiation letter (in the AI Agents panel, with Approve).
+>
+> Scope note: estimates are entered in the CRM (totals + pasted line-item
+> detail) rather than parsed from Xactimate ESX/PDF exports — reliable and
+> immediately usable. The comparison is stored as an agent output rather than
+> a separate `estimate_comparisons` table.
 
 ---
 
