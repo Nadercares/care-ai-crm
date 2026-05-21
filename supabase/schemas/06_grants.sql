@@ -106,6 +106,39 @@ grant all on table public.favicons_excluded_domains to anon;
 grant all on table public.favicons_excluded_domains to authenticated;
 grant all on table public.favicons_excluded_domains to service_role;
 
+-- CARE multi-agent foundation table grants
+grant all on table public.carriers to anon;
+grant all on table public.carriers to authenticated;
+grant all on table public.carriers to service_role;
+
+grant all on table public.carrier_adjusters to anon;
+grant all on table public.carrier_adjusters to authenticated;
+grant all on table public.carrier_adjusters to service_role;
+
+grant all on table public.policies to anon;
+grant all on table public.policies to authenticated;
+grant all on table public.policies to service_role;
+
+grant all on table public.document_templates to anon;
+grant all on table public.document_templates to authenticated;
+grant all on table public.document_templates to service_role;
+
+grant all on table public.task_templates to anon;
+grant all on table public.task_templates to authenticated;
+grant all on table public.task_templates to service_role;
+
+grant all on table public.task_template_items to anon;
+grant all on table public.task_template_items to authenticated;
+grant all on table public.task_template_items to service_role;
+
+grant all on table public.agent_runs to anon;
+grant all on table public.agent_runs to authenticated;
+grant all on table public.agent_runs to service_role;
+
+grant all on table public.agent_outputs to anon;
+grant all on table public.agent_outputs to authenticated;
+grant all on table public.agent_outputs to service_role;
+
 -- View grants
 grant all on table public.activity_log to anon;
 grant all on table public.activity_log to authenticated;
@@ -159,6 +192,39 @@ grant all on sequence public.tags_id_seq to service_role;
 grant all on sequence public.tasks_id_seq to anon;
 grant all on sequence public.tasks_id_seq to authenticated;
 grant all on sequence public.tasks_id_seq to service_role;
+
+-- CARE multi-agent foundation sequence grants
+grant all on sequence public.carriers_id_seq to anon;
+grant all on sequence public.carriers_id_seq to authenticated;
+grant all on sequence public.carriers_id_seq to service_role;
+
+grant all on sequence public.carrier_adjusters_id_seq to anon;
+grant all on sequence public.carrier_adjusters_id_seq to authenticated;
+grant all on sequence public.carrier_adjusters_id_seq to service_role;
+
+grant all on sequence public.policies_id_seq to anon;
+grant all on sequence public.policies_id_seq to authenticated;
+grant all on sequence public.policies_id_seq to service_role;
+
+grant all on sequence public.document_templates_id_seq to anon;
+grant all on sequence public.document_templates_id_seq to authenticated;
+grant all on sequence public.document_templates_id_seq to service_role;
+
+grant all on sequence public.task_templates_id_seq to anon;
+grant all on sequence public.task_templates_id_seq to authenticated;
+grant all on sequence public.task_templates_id_seq to service_role;
+
+grant all on sequence public.task_template_items_id_seq to anon;
+grant all on sequence public.task_template_items_id_seq to authenticated;
+grant all on sequence public.task_template_items_id_seq to service_role;
+
+grant all on sequence public.agent_runs_id_seq to anon;
+grant all on sequence public.agent_runs_id_seq to authenticated;
+grant all on sequence public.agent_runs_id_seq to service_role;
+
+grant all on sequence public.agent_outputs_id_seq to anon;
+grant all on sequence public.agent_outputs_id_seq to authenticated;
+grant all on sequence public.agent_outputs_id_seq to service_role;
 
 -- Default privileges
 alter default privileges for role postgres in schema public grant all on sequences to postgres;

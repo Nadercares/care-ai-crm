@@ -1,52 +1,57 @@
-const SYSTEM_PROMPT = `You are an AI assistant for C.A.R.E. Claims, an insurance claims advocacy firm.
-You help staff manage contacts, deals, and insurance claims workflows.
-The claims pipeline stages are: New Lead → Claim Filed → Adjuster Assigned → Adjuster Meeting → Negotiation → Settlement → Closed Won / Closed Lost.
-Be concise and direct. If asked about specific contact or deal data you don't have access to yet, say so clearly.`;
+import { getSupabaseClient } from "@/components/atomic-crm/providers/supabase/supabase";
 
 export interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
+/**
+ * Streams an AI reply for the given conversation.
+ *
+ * The browser does NOT call the AI provider directly anymore (that exposed the
+ * API key). It calls the `ai-chat` Supabase Edge Function, which holds the key
+ * server-side, verifies the user is logged in, and streams back plain text.
+ */
 export async function* streamChat(messages: ChatMessage[]) {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': window.location.origin,
-      'X-Title': 'CARE AI CRM',
-    },
-    body: JSON.stringify({
-      model: 'anthropic/claude-3-haiku',
-      messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
-      stream: true,
-    }),
-  });
+  const supabase = getSupabaseClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (!response.ok) {
-    const body = await response.text().catch(() => '');
-    throw new Error(`OpenRouter ${response.status}: ${response.statusText} — ${body}`);
+  if (!session) {
+    throw new Error("You must be signed in to use the AI assistant.");
   }
 
-  const reader = response.body!.getReader();
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ messages }),
+    },
+  );
+
+  if (!response.ok || !response.body) {
+    let detail = response.statusText;
+    try {
+      const body = await response.json();
+      if (body?.message) detail = body.message;
+    } catch {
+      // keep statusText
+    }
+    throw new Error(`AI assistant error (${response.status}): ${detail}`);
+  }
+
+  const reader = response.body.getReader();
   const decoder = new TextDecoder();
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    const chunk = decoder.decode(value, { stream: true });
-    const lines = chunk.split('\n').filter((line) => line.startsWith('data: '));
-    for (const line of lines) {
-      const data = line.slice(6).trim();
-      if (data === '[DONE]') return;
-      try {
-        const parsed = JSON.parse(data);
-        const content = parsed.choices?.[0]?.delta?.content;
-        if (content) yield content;
-      } catch {
-        // skip malformed SSE chunks
-      }
-    }
+    const text = decoder.decode(value, { stream: true });
+    if (text) yield text;
   }
 }

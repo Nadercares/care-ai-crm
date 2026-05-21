@@ -28,6 +28,31 @@ create or replace trigger set_task_sales_id_trigger
     before insert on public.tasks
     for each row execute function public.set_sales_id_default();
 
+-- CARE multi-agent foundation: default sales_id from current auth user
+create or replace trigger set_carriers_sales_id_trigger
+    before insert on public.carriers
+    for each row execute function public.set_sales_id_default();
+
+create or replace trigger set_carrier_adjusters_sales_id_trigger
+    before insert on public.carrier_adjusters
+    for each row execute function public.set_sales_id_default();
+
+create or replace trigger set_policies_sales_id_trigger
+    before insert on public.policies
+    for each row execute function public.set_sales_id_default();
+
+create or replace trigger set_document_templates_sales_id_trigger
+    before insert on public.document_templates
+    for each row execute function public.set_sales_id_default();
+
+create or replace trigger set_task_templates_sales_id_trigger
+    before insert on public.task_templates
+    for each row execute function public.set_sales_id_default();
+
+create or replace trigger set_agent_outputs_sales_id_trigger
+    before insert on public.agent_outputs
+    for each row execute function public.set_sales_id_default();
+
 -- Auto-fetch company logo from website favicon on save
 create or replace trigger company_saved
     before insert or update on public.companies

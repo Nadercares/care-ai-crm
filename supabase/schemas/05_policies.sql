@@ -12,6 +12,14 @@ alter table public.deal_notes enable row level security;
 alter table public.sales enable row level security;
 alter table public.tags enable row level security;
 alter table public.tasks enable row level security;
+alter table public.carriers enable row level security;
+alter table public.carrier_adjusters enable row level security;
+alter table public.policies enable row level security;
+alter table public.document_templates enable row level security;
+alter table public.task_templates enable row level security;
+alter table public.task_template_items enable row level security;
+alter table public.agent_runs enable row level security;
+alter table public.agent_outputs enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
@@ -67,3 +75,14 @@ create policy "Enable update for admins" on public.configuration for update to a
 
 -- Favicons excluded domains
 create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);
+
+-- CARE multi-agent foundation tables
+-- Any authenticated firm user may read and write. Stage 12 tightens per role.
+create policy "Enable all access for authenticated users" on public.carriers to authenticated using (true) with check (true);
+create policy "Enable all access for authenticated users" on public.carrier_adjusters to authenticated using (true) with check (true);
+create policy "Enable all access for authenticated users" on public.policies to authenticated using (true) with check (true);
+create policy "Enable all access for authenticated users" on public.document_templates to authenticated using (true) with check (true);
+create policy "Enable all access for authenticated users" on public.task_templates to authenticated using (true) with check (true);
+create policy "Enable all access for authenticated users" on public.task_template_items to authenticated using (true) with check (true);
+create policy "Enable all access for authenticated users" on public.agent_runs to authenticated using (true) with check (true);
+create policy "Enable all access for authenticated users" on public.agent_outputs to authenticated using (true) with check (true);
