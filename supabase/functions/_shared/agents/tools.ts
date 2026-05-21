@@ -3,6 +3,11 @@
 // tools (PDF extraction, weather APIs, etc.) are added in later roadmap stages.
 import { supabaseAdmin } from "../supabaseAdmin.ts";
 import type { ToolSchema } from "./anthropic.ts";
+import {
+  buildMapUrl,
+  fetchHistoricalWeather,
+  geocodeLocation,
+} from "./weather.ts";
 
 export interface ToolContext {
   dealId: number;
@@ -355,6 +360,67 @@ const getClaimEmails: ToolDefinition = {
   },
 };
 
+const getWeatherData: ToolDefinition = {
+  schema: {
+    name: "get_weather_data",
+    description:
+      "Get historical weather for the claim's loss location and date of loss: daily high/low temperature, precipitation, rain, snowfall, and maximum wind speed and gusts for a three-day window around the loss. Also returns a property location map URL when mapping is configured. Use this for weather-related claims.",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async (_input, ctx) => {
+    const { data: deal } = await supabaseAdmin
+      .from("deals")
+      .select("loss_address, loss_zipcode, loss_state, date_of_loss, loss_type")
+      .eq("id", ctx.dealId)
+      .single();
+    if (!deal) return { error: "Claim not found." };
+    if (!deal.date_of_loss) {
+      return {
+        error:
+          "This claim has no date of loss set. Set the date of loss before running weather research.",
+      };
+    }
+
+    const geo = await geocodeLocation({
+      address: deal.loss_address,
+      zip: deal.loss_zipcode,
+      state: deal.loss_state,
+    });
+    if (!geo) {
+      return {
+        error:
+          "Could not determine the property's location. Add a loss address or ZIP code to the claim.",
+      };
+    }
+
+    let weather: unknown;
+    try {
+      weather = await fetchHistoricalWeather(
+        geo.lat,
+        geo.lon,
+        deal.date_of_loss,
+      );
+    } catch (e) {
+      return {
+        location: geo,
+        date_of_loss: deal.date_of_loss,
+        loss_type: deal.loss_type,
+        error: `Weather data is unavailable: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      };
+    }
+
+    return {
+      location: geo,
+      date_of_loss: deal.date_of_loss,
+      loss_type: deal.loss_type,
+      weather,
+      map_url: buildMapUrl(geo.lat, geo.lon),
+    };
+  },
+};
+
 export const TOOLS: Record<string, ToolDefinition> = {
   get_claim: getClaim,
   get_policy: getPolicy,
@@ -363,6 +429,7 @@ export const TOOLS: Record<string, ToolDefinition> = {
   get_state_compliance: getStateCompliance,
   get_document_templates: getDocumentTemplates,
   get_claim_emails: getClaimEmails,
+  get_weather_data: getWeatherData,
   get_agent_outputs: getAgentOutputs,
   create_task: createTask,
 };

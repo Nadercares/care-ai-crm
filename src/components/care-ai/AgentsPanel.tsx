@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,37 @@ import {
 
 const isActive = (status: string) =>
   status === "running" || status === "queued";
+
+// Renders agent output text, turning Markdown image tags ![alt](url) — used by
+// the Weather Research agent for property maps — into actual images.
+function renderOutputContent(content: string | null): ReactNode {
+  if (!content) return null;
+  const parts: ReactNode[] = [];
+  const imageRegex = /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g;
+  let lastIndex = 0;
+  let key = 0;
+  let match: RegExpExecArray | null;
+  while ((match = imageRegex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(
+        <span key={key++}>{content.slice(lastIndex, match.index)}</span>,
+      );
+    }
+    parts.push(
+      <img
+        key={key++}
+        src={match[2]}
+        alt={match[1]}
+        className="my-2 max-w-full rounded border"
+      />,
+    );
+    lastIndex = imageRegex.lastIndex;
+  }
+  if (lastIndex < content.length) {
+    parts.push(<span key={key++}>{content.slice(lastIndex)}</span>);
+  }
+  return parts;
+}
 
 function StatusBadge({ status }: { status: string }) {
   const variant =
@@ -201,7 +232,7 @@ export function AgentsPanel({ dealId }: { dealId: number }) {
               {expanded === output.id && (
                 <div className="border-t">
                   <div className="px-3 pt-2 text-xs whitespace-pre-wrap leading-5">
-                    {output.content}
+                    {renderOutputContent(output.content)}
                   </div>
                   <div className="flex justify-end gap-2 px-3 py-2">
                     {output.status === "approved" ? (

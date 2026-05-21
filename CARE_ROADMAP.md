@@ -374,7 +374,7 @@ email produces a draft reply.
 
 ---
 
-### Stage 7 — Agent 4: Weather Research
+### Stage 7 — Agent 4: Weather Research  ✅ DONE
 
 **Goal:** For weather-related claims, produce a weather/storm report.
 
@@ -388,6 +388,18 @@ email produces a draft reply.
 
 **Done when:** A hail claim produces a report with a property map and storm
 data for the date of loss.
+
+> Delivered: the `get_weather_data` agent tool, which geocodes the loss
+> location (free US Census + ZIP lookups) and pulls historical daily weather
+> from the free Open-Meteo archive (temperatures, precipitation, wind speed
+> and gusts); the updated Weather Research agent that writes the report from
+> that real data; and image rendering in the AI Agents panel so property maps
+> show inline.
+>
+> Keys: weather data needs no API key. Property **map images** need a free
+> `MAPBOX_TOKEN` Supabase secret — without it the report still works, just
+> without the map. Gridded weather can understate hyper-local hail/wind, so
+> the agent still points to official NOAA Storm Events records to verify.
 
 ---
 

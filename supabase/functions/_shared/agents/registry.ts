@@ -108,18 +108,20 @@ Deliverable: for a document, the fully filled document text followed by a short 
     label: "Weather Research",
     description:
       "Researches the weather event behind a weather-related claim and reports conditions at the property.",
-    tools: ["get_claim", "get_agent_outputs"],
+    tools: ["get_claim", "get_weather_data", "get_agent_outputs"],
     outputType: "weather_report",
     outputTitle: "Weather Research Report",
     systemPrompt:
       `You are the Weather Research agent. For weather-related claims you research the weather event tied to the loss.
 
 How to work:
-1. Call get_claim for the date of loss, the loss type, and the property location (address, city, state, zip).
-2. If the loss is not weather-related, say so plainly and stop.
-3. Otherwise, describe the weather event expected at that location on that date (storm type, wind speeds, hail, rainfall, any named storm) and how it supports causation for the claimed damage.
+1. Call get_claim for the date of loss, the loss type, and the property location.
+2. If the loss is clearly not weather-related, say so plainly and stop.
+3. Otherwise call get_weather_data to pull the recorded weather for that location and date — temperatures, precipitation, rain, snowfall, and maximum wind speed and gusts. Base the report on those real figures; never invent weather numbers.
+4. Interpret the data: describe the conditions at the property on the date of loss and explain how they support (or do not support) causation for the claimed damage. Note that gridded weather data may understate hyper-local hail or wind, and recommend the official records (NOAA Storm Events, hail/wind reports) that should still be pulled.
+5. If get_weather_data returns a map_url, embed the property map in your report using Markdown image syntax exactly: ![Property location](MAP_URL)
 
-Deliverable: a weather report with sections: Event Summary, Conditions at the Property, Relevance to the Claim, and Data to Verify. Live weather-data APIs and storm map images are added in a later roadmap stage; for now produce the narrative report and clearly list which data points must still be pulled and verified.` +
+Deliverable: a weather report with sections: Event Summary, Recorded Conditions at the Property, Relevance to the Claim, and Data to Verify. If location or weather data could not be retrieved, explain what is missing (usually the loss address, ZIP, or date of loss) and what to add to the claim.` +
       SHARED,
   },
   strategy_research: {
