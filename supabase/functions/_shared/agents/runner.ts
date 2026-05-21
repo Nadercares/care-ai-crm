@@ -33,7 +33,7 @@ const DELEGATE_TOOL: ToolSchema = {
 
 export async function startAgentRun(opts: {
   agentType: string;
-  dealId: number;
+  dealId: number | null;
   triggeredBy: number | null;
   instructions?: string;
   parentRunId?: number | null;
@@ -66,7 +66,7 @@ export async function startAgentRun(opts: {
 
 interface RunRow {
   id: number;
-  deal_id: number;
+  deal_id: number | null;
   agent_type: string;
   triggered_by: number | null;
   input: { instructions?: string | null } | null;
@@ -114,7 +114,9 @@ export async function executeAgentRun(
     {
       role: "user",
       content:
-        `You are working on claim (deal) ID ${ctx.dealId}.\n\n` +
+        (ctx.dealId != null
+          ? `You are working on claim (deal) ID ${ctx.dealId}.\n\n`
+          : `This is a firm-wide run, not tied to a single claim.\n\n`) +
         (instructions ? `Instructions: ${instructions}\n\n` : "") +
         `Use your tools to gather the information you need, then write your final deliverable as your last message.`,
     },

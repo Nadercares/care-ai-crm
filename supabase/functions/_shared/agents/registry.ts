@@ -199,18 +199,30 @@ Deliverable: a claim ledger summary with sections: Money Received, CARE Fees, Ex
     label: "Data & Reporting",
     description:
       "Keeps claim data organized (carriers, adjusters, patterns) and produces reports on demand.",
-    tools: ["get_claim", "get_agent_outputs"],
+    tools: [
+      "get_claim",
+      "get_claims_overview",
+      "get_carrier_directory",
+      "get_settlement_stats",
+      "get_agent_outputs",
+    ],
     outputType: "data_report",
     outputTitle: "Data & Reporting Output",
     systemPrompt:
-      `You are the Data & Reporting agent. You keep the firm's claim knowledge organized and produce reports.
+      `You are the Data & Reporting agent. You keep the firm's claim knowledge organized and produce reports on demand.
+
+You may run for a single claim or firm-wide. Your instructions say which report to produce.
 
 How to work:
-1. Call get_claim and get_agent_outputs to gather the data and prior findings for this claim.
-2. Organize the useful structured data: carrier and carrier-adjuster details (names, license numbers, contact information), carrier patterns, and which template letters have been used.
-3. Produce the report described in your instructions; if no specific report is requested, produce a claim status report.
+1. Choose the right tools for the requested report:
+   - get_claims_overview — every claim's stage, carrier, loss type, dates and amount (pipeline and status reports).
+   - get_carrier_directory — every carrier and carrier adjuster (carrier and adjuster-directory reports).
+   - get_settlement_stats — firm-wide settlement averages, overall and by carrier (performance reports).
+   - get_claim and get_agent_outputs — a single claim's detail and prior agent findings (claim status reports).
+2. Build the report the instructions describe. If no report is specified, produce a firm-wide claims status overview.
+3. Base every figure and name on the tool data — never invent claims, carriers, adjusters or numbers.
 
-Deliverable: a clear, well-structured report with a short summary at the top, organized sections below, and a closing list of data points that should be recorded in the CRM to improve future reporting.` +
+Deliverable: a clear, well-structured report in Markdown with a short summary at the top, organized sections (use tables for lists), and a closing list of data points that should be recorded in the CRM to improve future reporting.` +
       SHARED,
   },
 };

@@ -10,7 +10,7 @@ import {
 } from "./weather.ts";
 
 export interface ToolContext {
-  dealId: number;
+  dealId: number | null;
   runId: number;
   triggeredBy: number | null;
 }
@@ -28,6 +28,9 @@ const getClaim: ToolDefinition = {
     input_schema: { type: "object", properties: {} },
   },
   run: async (_input, ctx) => {
+    if (ctx.dealId == null) {
+      return { error: "This tool needs a specific claim." };
+    }
     const { data: deal, error } = await supabaseAdmin
       .from("deals")
       .select("*")
@@ -201,10 +204,14 @@ const getAgentOutputs: ToolDefinition = {
   run: async (input, ctx) => {
     let query = supabaseAdmin
       .from("agent_outputs")
-      .select("id, agent_type, output_type, title, content, status, created_at")
-      .eq("deal_id", ctx.dealId)
+      .select(
+        "id, deal_id, agent_type, output_type, title, content, status, created_at",
+      )
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(ctx.dealId == null ? 30 : 20);
+    if (ctx.dealId != null) {
+      query = query.eq("deal_id", ctx.dealId);
+    }
     if (typeof input.agent_type === "string") {
       query = query.eq("agent_type", input.agent_type);
     }
@@ -239,6 +246,9 @@ const createTask: ToolDefinition = {
     },
   },
   run: async (input, ctx) => {
+    if (ctx.dealId == null) {
+      return { error: "Tasks must be attached to a specific claim." };
+    }
     const text = typeof input.text === "string" ? input.text.trim() : "";
     if (!text) return { error: "A task 'text' is required." };
 
@@ -598,6 +608,74 @@ const getSettlementStats: ToolDefinition = {
   },
 };
 
+const getClaimsOverview: ToolDefinition = {
+  schema: {
+    name: "get_claims_overview",
+    description:
+      "Get a firm-wide overview of every claim: name, stage, claim number, loss type, loss state, date of loss, amount, carrier, and whether it is archived. Use this for pipeline and status reports.",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async () => {
+    const { data: deals } = await supabaseAdmin
+      .from("deals")
+      .select(
+        "id, name, stage, claim_number, loss_type, loss_state, date_of_loss, amount, archived_at, primary_carrier_id",
+      )
+      .order("created_at", { ascending: false });
+    const { data: carriers } = await supabaseAdmin
+      .from("carriers")
+      .select("id, name");
+    const carrierName = new Map((carriers ?? []).map((c) => [c.id, c.name]));
+    const claims = (deals ?? []).map((d) => ({
+      id: d.id,
+      name: d.name,
+      stage: d.stage,
+      claim_number: d.claim_number,
+      loss_type: d.loss_type,
+      loss_state: d.loss_state,
+      date_of_loss: d.date_of_loss,
+      amount: d.amount,
+      archived: !!d.archived_at,
+      carrier: d.primary_carrier_id
+        ? (carrierName.get(d.primary_carrier_id) ?? null)
+        : null,
+    }));
+    return { claim_count: claims.length, claims };
+  },
+};
+
+const getCarrierDirectory: ToolDefinition = {
+  schema: {
+    name: "get_carrier_directory",
+    description:
+      "Get the firm's full carrier directory: every carrier with its contact details and notes, and every carrier adjuster (names, license numbers, license state, contact info).",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async () => {
+    const { data: carriers } = await supabaseAdmin
+      .from("carriers")
+      .select("id, name, naic_code, phone, email, claims_portal_url, notes")
+      .order("name", { ascending: true });
+    const { data: adjusters } = await supabaseAdmin
+      .from("carrier_adjusters")
+      .select(
+        "carrier_id, first_name, last_name, license_number, license_state, adjuster_type, phone, email",
+      );
+    const byCarrier = new Map<number, unknown[]>();
+    for (const a of adjusters ?? []) {
+      const list = byCarrier.get(a.carrier_id) ?? [];
+      list.push(a);
+      byCarrier.set(a.carrier_id, list);
+    }
+    return {
+      carriers: (carriers ?? []).map((c) => ({
+        ...c,
+        adjusters: byCarrier.get(c.id) ?? [],
+      })),
+    };
+  },
+};
+
 export const TOOLS: Record<string, ToolDefinition> = {
   get_claim: getClaim,
   get_policy: getPolicy,
@@ -611,6 +689,8 @@ export const TOOLS: Record<string, ToolDefinition> = {
   get_estimates: getEstimates,
   get_claim_financials: getClaimFinancials,
   get_settlement_stats: getSettlementStats,
+  get_claims_overview: getClaimsOverview,
+  get_carrier_directory: getCarrierDirectory,
   get_agent_outputs: getAgentOutputs,
   create_task: createTask,
 };

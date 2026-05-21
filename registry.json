@@ -162,11 +162,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/ReportsPage.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/settings/ProfilePage.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/settings/DocumentTemplatesPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/settings/CarriersPage.tsx",
           "type": "registry:component"
         },
         {

@@ -489,7 +489,7 @@ averages by carrier.
 
 ---
 
-### Stage 11 — Agent 8: Data & Reporting
+### Stage 11 — Agent 8: Data & Reporting  ✅ DONE
 
 **Goal:** A knowledge base and report generator.
 
@@ -503,6 +503,17 @@ averages by carrier.
 
 **Done when:** You can pull a "carrier performance" report and an "adjuster
 directory" on demand.
+
+> Delivered: the firm-wide **Carriers** page (user menu) — manage every
+> carrier and its adjusters; the **Reports** page (user menu) — pick a report
+> type (claims status, carrier performance, carrier/adjuster directory,
+> pipeline by carrier) and the Data & Reporting agent generates it; the
+> firm-wide agent tools `get_claims_overview` and `get_carrier_directory`; and
+> the ability to run the Data & Reporting agent firm-wide (no specific claim).
+>
+> Scope note: template-letter usage counts are not yet tracked precisely
+> (that needs each filled document to record its source template) — a future
+> enhancement. Reports are viewed in-app; a file download is also future work.
 
 ---
 

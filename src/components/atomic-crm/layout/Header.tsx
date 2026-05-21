@@ -1,4 +1,6 @@
 import {
+  BarChart3,
+  Building2,
   FileText,
   Import,
   ListChecks,
@@ -101,6 +103,8 @@ const Header = () => {
                   <TaskTemplatesMenu />
                   <StateComplianceMenu />
                   <DocumentTemplatesMenu />
+                  <CarriersMenu />
+                  <ReportsMenu />
                   <ImportFromJsonMenuItem />
                 </UserMenu>
               </div>
@@ -221,6 +225,36 @@ const DocumentTemplatesMenu = () => {
       <Link to="/document-templates" className="flex items-center gap-2">
         <FileText />
         Document Templates
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const CarriersMenu = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<CarriersMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/carriers" className="flex items-center gap-2">
+        <Building2 />
+        Carriers
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const ReportsMenu = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<ReportsMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/reports" className="flex items-center gap-2">
+        <BarChart3 />
+        Reports
       </Link>
     </DropdownMenuItem>
   );

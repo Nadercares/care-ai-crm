@@ -42,7 +42,9 @@ async function handle(req: Request, saleId: number | null): Promise<Response> {
   }
 
   const agentType = String(body?.agentType ?? "");
-  const dealId = Number(body?.dealId);
+  const hasDealId =
+    body?.dealId !== undefined && body?.dealId !== null && body?.dealId !== "";
+  const dealId = hasDealId ? Number(body?.dealId) : null;
   const instructions =
     typeof body?.input?.instructions === "string"
       ? body.input.instructions
@@ -54,17 +56,25 @@ async function handle(req: Request, saleId: number | null): Promise<Response> {
       `Unknown agent type. Valid types: ${SPECIALIST_IDS.join(", ")}`,
     );
   }
-  if (!Number.isInteger(dealId) || dealId <= 0) {
-    return createErrorResponse(400, "A valid numeric 'dealId' is required");
-  }
 
-  const { data: deal } = await supabaseAdmin
-    .from("deals")
-    .select("id")
-    .eq("id", dealId)
-    .single();
-  if (!deal) {
-    return createErrorResponse(404, `Claim ${dealId} not found`);
+  // The Data & Reporting agent may run firm-wide (no claim); all others
+  // require a specific claim.
+  if (dealId === null) {
+    if (agentType !== "data_reporting") {
+      return createErrorResponse(400, "A valid numeric 'dealId' is required");
+    }
+  } else {
+    if (!Number.isInteger(dealId) || dealId <= 0) {
+      return createErrorResponse(400, "'dealId' must be a positive number");
+    }
+    const { data: deal } = await supabaseAdmin
+      .from("deals")
+      .select("id")
+      .eq("id", dealId)
+      .single();
+    if (!deal) {
+      return createErrorResponse(404, `Claim ${dealId} not found`);
+    }
   }
 
   const runId = await startAgentRun({

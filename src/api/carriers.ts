@@ -139,3 +139,46 @@ export async function deleteCarrierAdjuster(id: number): Promise<void> {
     .eq("id", id);
   if (error) throw new Error(error.message);
 }
+
+export interface CarrierInput {
+  id?: number;
+  name: string;
+  naic_code: string | null;
+  phone: string | null;
+  email: string | null;
+  claims_portal_url: string | null;
+  notes: string | null;
+}
+
+export async function fetchAllCarriers(): Promise<Carrier[]> {
+  const { data, error } = await getSupabaseClient()
+    .from("carriers")
+    .select("id, name, naic_code, phone, email, claims_portal_url, notes")
+    .order("name", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Carrier[];
+}
+
+export async function saveCarrier(input: CarrierInput): Promise<void> {
+  const supabase = getSupabaseClient();
+  const row = {
+    name: input.name.trim(),
+    naic_code: input.naic_code,
+    phone: input.phone,
+    email: input.email,
+    claims_portal_url: input.claims_portal_url,
+    notes: input.notes,
+  };
+  const { error } = input.id
+    ? await supabase.from("carriers").update(row).eq("id", input.id)
+    : await supabase.from("carriers").insert(row);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteCarrier(id: number): Promise<void> {
+  const { error } = await getSupabaseClient()
+    .from("carriers")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
