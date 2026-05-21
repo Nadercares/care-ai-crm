@@ -569,7 +569,7 @@ security advisor reports no warnings.
 
 ---
 
-### Stage 13 — Production launch on the web server
+### Stage 13 — Production launch on the web server  ✅ READY
 
 **Goal:** Put the finished system online for the firm to use.
 
@@ -586,6 +586,16 @@ security advisor reports no warnings.
 
 **Done when:** Staff log in at the firm's domain and run a real claim
 end-to-end.
+
+> Delivered: the production build is verified (`npm run build` succeeds), a
+> production environment template (`.env.production.example`), and a complete
+> click-by-click launch guide — **`CARE_DEPLOYMENT.md`**. Follow that guide to
+> perform the launch: create the Supabase project, push the schema and Edge
+> Functions, set the secret keys, deploy the website to Railway, connect a
+> domain, create the firm's users, and run the end-to-end smoke test.
+>
+> These last steps happen in your own Supabase and Railway accounts, so they
+> are yours to run — the guide walks through every click.
 
 ---
 
