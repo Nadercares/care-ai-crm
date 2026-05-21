@@ -23,6 +23,8 @@ alter table public.agent_outputs enable row level security;
 alter table public.state_compliance_rules enable row level security;
 alter table public.claim_emails enable row level security;
 alter table public.estimates enable row level security;
+alter table public.financial_ledger enable row level security;
+alter table public.settlements enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
@@ -92,3 +94,13 @@ create policy "Enable all access for authenticated users" on public.agent_output
 create policy "Enable all access for authenticated users" on public.state_compliance_rules to authenticated using (true) with check (true);
 create policy "Enable all access for authenticated users" on public.claim_emails to authenticated using (true) with check (true);
 create policy "Enable all access for authenticated users" on public.estimates to authenticated using (true) with check (true);
+
+-- Financial tables are restricted to finance roles (owner / accounting) and admins.
+create policy "Finance role access" on public.financial_ledger
+    for all to authenticated
+    using (exists (select 1 from public.sales s where s.user_id = auth.uid() and (s.administrator or s.role in ('owner', 'accounting'))))
+    with check (exists (select 1 from public.sales s where s.user_id = auth.uid() and (s.administrator or s.role in ('owner', 'accounting'))));
+create policy "Finance role access" on public.settlements
+    for all to authenticated
+    using (exists (select 1 from public.sales s where s.user_id = auth.uid() and (s.administrator or s.role in ('owner', 'accounting'))))
+    with check (exists (select 1 from public.sales s where s.user_id = auth.uid() and (s.administrator or s.role in ('owner', 'accounting'))));

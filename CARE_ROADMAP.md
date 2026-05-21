@@ -458,7 +458,7 @@ negotiation letter.
 
 ---
 
-### Stage 10 — Agent 7: Comptroller / Bookkeeper
+### Stage 10 — Agent 7: Comptroller / Bookkeeper  ✅ DONE
 
 **Goal:** Track every dollar and the "written vs settled" gap.
 
@@ -472,6 +472,20 @@ negotiation letter.
 
 **Done when:** A claim shows a correct ledger, and a dashboard shows settlement
 averages by carrier.
+
+> Delivered: the `financial_ledger` and `settlements` tables; a **Claim
+> Financials** panel on the claim screen — settlement (written vs. settled)
+> editor, a money ledger (payments received, CARE fees, expenses) with running
+> totals and net-to-client, firm-wide settlement performance, and a "Run
+> Comptroller agent" button; the `get_claim_financials` and
+> `get_settlement_stats` agent tools; and the updated Comptroller agent that
+> reconciles the money and compares the claim to firm-wide averages.
+>
+> Both financial tables are protected by **Row Level Security** — only owner,
+> accounting and administrator users can read or write them — and the panel
+> hides itself for everyone else. By-carrier averages are delivered through the
+> agent's report; the settlement-stats agent tool also breaks them down by
+> carrier. A dedicated dashboard widget is a future enhancement.
 
 ---
 

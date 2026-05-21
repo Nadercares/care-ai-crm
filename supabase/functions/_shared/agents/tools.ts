@@ -502,6 +502,102 @@ const getEstimates: ToolDefinition = {
   },
 };
 
+const getClaimFinancials: ToolDefinition = {
+  schema: {
+    name: "get_claim_financials",
+    description:
+      "Get this claim's money: every ledger entry (carrier payments received, CARE fees, expenses) and the settlement record (amount the public adjuster wrote vs. the amount actually settled).",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async (_input, ctx) => {
+    const { data: ledger } = await supabaseAdmin
+      .from("financial_ledger")
+      .select("entry_type, description, amount, entry_date")
+      .eq("deal_id", ctx.dealId)
+      .order("entry_date", { ascending: true });
+    const { data: settlement } = await supabaseAdmin
+      .from("settlements")
+      .select("amount_written, amount_settled, settled_date, notes")
+      .eq("deal_id", ctx.dealId)
+      .maybeSingle();
+    return { ledger: ledger ?? [], settlement: settlement ?? null };
+  },
+};
+
+interface SettlementRow {
+  deal_id: number;
+  amount_written: number | string | null;
+  amount_settled: number | string | null;
+}
+
+function summarizeSettlements(rows: SettlementRow[]) {
+  const n = rows.length;
+  const written = rows.reduce((s, r) => s + Number(r.amount_written), 0);
+  const settled = rows.reduce((s, r) => s + Number(r.amount_settled), 0);
+  return {
+    claims: n,
+    average_written: Math.round(written / n),
+    average_settled: Math.round(settled / n),
+    average_settled_to_written_ratio:
+      written > 0 ? Number((settled / written).toFixed(3)) : null,
+  };
+}
+
+const getSettlementStats: ToolDefinition = {
+  schema: {
+    name: "get_settlement_stats",
+    description:
+      "Get firm-wide settlement statistics across every claim with a settlement recorded: the average amount written, the average amount settled, and the average settled-to-written ratio — overall and broken down by carrier.",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async () => {
+    const { data: settlements } = await supabaseAdmin
+      .from("settlements")
+      .select("deal_id, amount_written, amount_settled");
+    const rows = ((settlements ?? []) as SettlementRow[]).filter(
+      (r) => r.amount_written != null && r.amount_settled != null,
+    );
+    if (!rows.length) {
+      return {
+        count: 0,
+        message:
+          "No settlements with both a written and a settled amount have been recorded yet.",
+      };
+    }
+
+    const dealIds = rows.map((r) => r.deal_id);
+    const { data: deals } = await supabaseAdmin
+      .from("deals")
+      .select("id, primary_carrier_id")
+      .in("id", dealIds);
+    const { data: carriers } = await supabaseAdmin
+      .from("carriers")
+      .select("id, name");
+    const carrierName = new Map((carriers ?? []).map((c) => [c.id, c.name]));
+    const dealCarrier = new Map(
+      (deals ?? []).map((d) => [d.id, d.primary_carrier_id]),
+    );
+
+    const groups = new Map<string, SettlementRow[]>();
+    for (const row of rows) {
+      const carrierId = dealCarrier.get(row.deal_id) ?? null;
+      const key =
+        carrierId != null
+          ? (carrierName.get(carrierId) ?? `Carrier ${carrierId}`)
+          : "Unassigned carrier";
+      const group = groups.get(key) ?? [];
+      group.push(row);
+      groups.set(key, group);
+    }
+
+    const byCarrier: Record<string, unknown> = {};
+    for (const [name, group] of groups) {
+      byCarrier[name] = summarizeSettlements(group);
+    }
+    return { overall: summarizeSettlements(rows), by_carrier: byCarrier };
+  },
+};
+
 export const TOOLS: Record<string, ToolDefinition> = {
   get_claim: getClaim,
   get_policy: getPolicy,
@@ -513,6 +609,8 @@ export const TOOLS: Record<string, ToolDefinition> = {
   get_weather_data: getWeatherData,
   get_carrier_intelligence: getCarrierIntelligence,
   get_estimates: getEstimates,
+  get_claim_financials: getClaimFinancials,
+  get_settlement_stats: getSettlementStats,
   get_agent_outputs: getAgentOutputs,
   create_task: createTask,
 };

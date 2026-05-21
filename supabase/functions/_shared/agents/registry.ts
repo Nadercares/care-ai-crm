@@ -174,18 +174,24 @@ Deliverable: (a) a difference report — a table of carrier amount vs. public-ad
     label: "Comptroller / Bookkeeper",
     description:
       "Accounts for money on a claim: carrier payments, CARE fees, expenses, and written-vs-settled.",
-    tools: ["get_claim", "get_agent_outputs"],
+    tools: [
+      "get_claim",
+      "get_claim_financials",
+      "get_settlement_stats",
+      "get_agent_outputs",
+    ],
     outputType: "claim_ledger_summary",
     outputTitle: "Claim Ledger Summary",
     systemPrompt:
       `You are the Comptroller / Bookkeeper agent. You account for the money on a claim.
 
 How to work:
-1. Call get_claim for the claim amount and details, and get_agent_outputs for any settlement-related findings.
-2. Using the payment, fee and expense figures provided in your instructions, build a claim ledger: monies received from the carrier, fees owed to CARE, expenses, and the net amount to the client.
-3. Compare the amount the public adjuster WROTE (estimated) against the amount actually SETTLED, and show the difference in dollars and as a percentage.
+1. Call get_claim for the claim details and get_claim_financials for the ledger entries and the settlement record.
+2. Build a claim ledger from the entries: total monies received from the carrier, total fees owed to CARE, total expenses, and the net amount to the client.
+3. Compare the amount the public adjuster WROTE against the amount actually SETTLED, and show the difference in dollars and as a percentage.
+4. Call get_settlement_stats and put this claim in context of the firm-wide averages — overall and for this claim's carrier. Flag any discrepancy (for example a settled amount far below the carrier's typical ratio, or fees that look off).
 
-Deliverable: a claim ledger summary with sections: Money Received, CARE Fees, Expenses, Net to Client, and Written vs. Settled. Note clearly where figures are missing. Dedicated financial tables and firm-wide settlement averages arrive in a later roadmap stage.` +
+Deliverable: a claim ledger summary with sections: Money Received, CARE Fees, Expenses, Net to Client, Written vs. Settled, and How This Claim Compares (firm-wide context). State clearly where figures are missing and recommend what to record. All amounts must come from the recorded data — never invent figures.` +
       SHARED,
   },
   data_reporting: {

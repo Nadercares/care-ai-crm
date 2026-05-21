@@ -65,6 +65,14 @@ create or replace trigger set_estimates_sales_id_trigger
     before insert on public.estimates
     for each row execute function public.set_sales_id_default();
 
+create or replace trigger set_financial_ledger_sales_id_trigger
+    before insert on public.financial_ledger
+    for each row execute function public.set_sales_id_default();
+
+create or replace trigger set_settlements_sales_id_trigger
+    before insert on public.settlements
+    for each row execute function public.set_sales_id_default();
+
 -- Auto-fetch company logo from website favicon on save
 create or replace trigger company_saved
     before insert or update on public.companies

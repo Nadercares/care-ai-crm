@@ -33,6 +33,7 @@ import { CarrierPanel } from "@/components/care-ai/CarrierPanel";
 import { PolicyPanel } from "@/components/care-ai/PolicyPanel";
 import { DocumentsPanel } from "@/components/care-ai/DocumentsPanel";
 import { EstimatesPanel } from "@/components/care-ai/EstimatesPanel";
+import { FinancialsPanel } from "@/components/care-ai/FinancialsPanel";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -178,6 +179,8 @@ const DealShowContent = () => {
           <DocumentsPanel dealId={Number(record.id)} />
 
           <EstimatesPanel dealId={Number(record.id)} />
+
+          <FinancialsPanel dealId={Number(record.id)} />
 
           <AgentsPanel dealId={Number(record.id)} />
 
