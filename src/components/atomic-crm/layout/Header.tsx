@@ -1,4 +1,4 @@
-import { Import, Settings, User, Users } from "lucide-react";
+import { Import, ListChecks, Settings, User, Users } from "lucide-react";
 import { CanAccess, useTranslate, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
@@ -90,6 +90,7 @@ const Header = () => {
                   <CanAccess resource="configuration" action="edit">
                     <SettingsMenu />
                   </CanAccess>
+                  <TaskTemplatesMenu />
                   <ImportFromJsonMenuItem />
                 </UserMenu>
               </div>
@@ -165,6 +166,21 @@ const SettingsMenu = () => {
       <Link to="/settings" className="flex items-center gap-2">
         <Settings />
         {translate("crm.settings.title")}
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const TaskTemplatesMenu = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<TaskTemplatesMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/task-templates" className="flex items-center gap-2">
+        <ListChecks />
+        Task Templates
       </Link>
     </DropdownMenuItem>
   );

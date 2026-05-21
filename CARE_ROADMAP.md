@@ -244,7 +244,7 @@ orchestrator delegate to a placeholder agent that returns a result.
 
 ---
 
-### Stage 3 — Template tasks & the daily task generator
+### Stage 3 — Template tasks & the daily task generator  ✅ DONE
 
 **Goal:** Let a staff user define reusable task templates, and have the system
 generate daily tasks automatically.
@@ -264,6 +264,27 @@ creates on its own.
 
 **Done when:** You create a "New Claim Intake" template, and when a claim
 enters a stage the matching tasks appear automatically.
+
+> Delivered: the **Task Templates** page (open it from the user menu,
+> top-right), the `generate-tasks` Edge Function, and a "Generate tasks now"
+> button. Generated tasks appear in the normal Tasks list.
+>
+> **Automating the daily run:** the generator is idempotent, so running it
+> repeatedly is safe. To run it every morning without clicking the button,
+> schedule a daily `POST` to the `generate-tasks` function:
+> - Easiest: in the Supabase dashboard go to **Integrations → Cron**, create a
+>   job that runs daily and calls the `generate-tasks` Edge Function.
+> - Or with SQL (`pg_cron` + `pg_net`):
+>   ```sql
+>   select cron.schedule(
+>     'care-generate-tasks-daily', '0 13 * * *',
+>     $$ select net.http_post(
+>          url := 'https://<your-project-ref>.supabase.co/functions/v1/generate-tasks',
+>          headers := '{"Authorization": "Bearer <service-role-key>", "Content-Type": "application/json"}'::jsonb,
+>          body := '{}'::jsonb
+>        ); $$
+>   );
+>   ```
 
 ---
 

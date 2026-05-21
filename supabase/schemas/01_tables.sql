@@ -123,7 +123,9 @@ create table public.tasks (
     text text,
     due_date timestamp with time zone,
     done_date timestamp with time zone,
-    sales_id bigint
+    sales_id bigint,
+    created_at timestamp with time zone not null default now(),
+    template_item_id bigint
 );
 
 create table public.configuration (
@@ -320,6 +322,9 @@ alter table public.task_templates
 alter table public.task_template_items
     add constraint task_template_items_template_id_fkey foreign key (template_id) references public.task_templates(id) on update cascade on delete cascade;
 
+alter table public.tasks
+    add constraint tasks_template_item_id_fkey foreign key (template_item_id) references public.task_template_items(id) on delete set null;
+
 alter table public.agent_runs
     add constraint agent_runs_deal_id_fkey foreign key (deal_id) references public.deals(id) on update cascade on delete cascade;
 
@@ -365,3 +370,4 @@ create index agent_runs_deal_id_idx on public.agent_runs using btree (deal_id);
 create index agent_runs_parent_run_id_idx on public.agent_runs using btree (parent_run_id);
 create index agent_outputs_run_id_idx on public.agent_outputs using btree (run_id);
 create index agent_outputs_deal_id_idx on public.agent_outputs using btree (deal_id);
+create index tasks_template_item_id_idx on public.tasks using btree (template_item_id);
