@@ -174,3 +174,7 @@ verify_jwt = false
 verify_jwt = false
 [functions.ai-chat]
 verify_jwt = false
+[functions.agent]
+verify_jwt = false
+[functions.orchestrator]
+verify_jwt = false

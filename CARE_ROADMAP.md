@@ -181,7 +181,7 @@ The repository already has:
 
 ---
 
-### Stage 1 — Secure AI backend + core data model + roles
+### Stage 1 — Secure AI backend + core data model + roles  ✅ DONE
 
 **Goal:** Move all AI calls to the server so no secret key is exposed, and
 build the database tables the whole system stands on.
@@ -208,12 +208,12 @@ to store claims, policies, and agent results before any agent can exist.
 **Done when:** The chat sidebar still works, but the browser no longer holds
 any API key, and the new tables exist in the database.
 
-> Stages 2+ build directly on this. This stage is implemented as the first
-> coding step right after this roadmap is committed.
+> Delivered: `ai-chat` Edge Function + the foundation migration
+> (`20260521120000_care_multi_agent_foundation.sql`).
 
 ---
 
-### Stage 2 — The agent engine (Orchestrator + shared runtime + tools)
+### Stage 2 — The agent engine (Orchestrator + shared runtime + tools)  ✅ DONE
 
 **Goal:** Build the reusable machinery that *all* agents share.
 
@@ -234,6 +234,13 @@ nine times. Build it once, well.
 
 **Done when:** From a claim screen you can press "Run" and watch the
 orchestrator delegate to a placeholder agent that returns a result.
+
+> Delivered: the agent runtime in `supabase/functions/_shared/agents/`
+> (anthropic client, tools, registry of all 9 agents, run loop), the `agent`
+> and `orchestrator` Edge Functions, and the **AI Agents** panel on the claim
+> screen. All 9 agents have working baseline prompts; Stages 4–12 deepen each
+> one. Note: the panel can run agents now, but they only return real results
+> once the `ANTHROPIC_API_KEY` secret is set on the server.
 
 ---
 
