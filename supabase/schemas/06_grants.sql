@@ -65,6 +65,10 @@ grant all on function public.set_sales_id_default() to anon;
 grant all on function public.set_sales_id_default() to authenticated;
 grant all on function public.set_sales_id_default() to service_role;
 
+grant all on function public.record_audit() to anon;
+grant all on function public.record_audit() to authenticated;
+grant all on function public.record_audit() to service_role;
+
 -- Table grants
 grant all on table public.companies to anon;
 grant all on table public.companies to authenticated;
@@ -158,6 +162,10 @@ grant all on table public.financial_ledger to service_role;
 grant all on table public.settlements to anon;
 grant all on table public.settlements to authenticated;
 grant all on table public.settlements to service_role;
+
+grant all on table public.audit_log to anon;
+grant all on table public.audit_log to authenticated;
+grant all on table public.audit_log to service_role;
 
 -- View grants
 grant all on table public.activity_log to anon;
@@ -265,6 +273,10 @@ grant all on sequence public.financial_ledger_id_seq to service_role;
 grant all on sequence public.settlements_id_seq to anon;
 grant all on sequence public.settlements_id_seq to authenticated;
 grant all on sequence public.settlements_id_seq to service_role;
+
+grant all on sequence public.audit_log_id_seq to anon;
+grant all on sequence public.audit_log_id_seq to authenticated;
+grant all on sequence public.audit_log_id_seq to service_role;
 
 -- Default privileges
 alter default privileges for role postgres in schema public grant all on sequences to postgres;

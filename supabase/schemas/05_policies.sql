@@ -25,6 +25,7 @@ alter table public.claim_emails enable row level security;
 alter table public.estimates enable row level security;
 alter table public.financial_ledger enable row level security;
 alter table public.settlements enable row level security;
+alter table public.audit_log enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
@@ -104,3 +105,9 @@ create policy "Finance role access" on public.settlements
     for all to authenticated
     using (exists (select 1 from public.sales s where s.user_id = auth.uid() and (s.administrator or s.role in ('owner', 'accounting'))))
     with check (exists (select 1 from public.sales s where s.user_id = auth.uid() and (s.administrator or s.role in ('owner', 'accounting'))));
+
+-- Audit log is read-only to finance roles; rows are written only by the
+-- record_audit() trigger function (no insert/update/delete policy).
+create policy "Audit read for finance roles" on public.audit_log
+    for select to authenticated
+    using (exists (select 1 from public.sales s where s.user_id = auth.uid() and (s.administrator or s.role in ('owner', 'accounting'))));

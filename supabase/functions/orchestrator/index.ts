@@ -9,6 +9,7 @@ import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { executeAgentRun, startAgentRun } from "../_shared/agents/runner.ts";
+import { isRateLimited } from "../_shared/rateLimit.ts";
 
 function runInBackground(promise: Promise<unknown>): void {
   const edgeRuntime = (
@@ -38,7 +39,7 @@ async function handle(req: Request, saleId: number | null): Promise<Response> {
   const dealId = Number(body?.dealId);
   const instructions =
     typeof body?.input?.instructions === "string"
-      ? body.input.instructions
+      ? body.input.instructions.slice(0, 4000)
       : undefined;
 
   if (!Number.isInteger(dealId) || dealId <= 0) {
@@ -52,6 +53,13 @@ async function handle(req: Request, saleId: number | null): Promise<Response> {
     .single();
   if (!deal) {
     return createErrorResponse(404, `Claim ${dealId} not found`);
+  }
+
+  if (await isRateLimited(saleId)) {
+    return createErrorResponse(
+      429,
+      "Too many agent runs in the last minute. Please wait a moment and try again.",
+    );
   }
 
   const runId = await startAgentRun({

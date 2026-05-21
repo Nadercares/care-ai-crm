@@ -453,3 +453,23 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION "public"."record_audit"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  actor bigint;
+begin
+  select id into actor from public.sales where user_id = auth.uid();
+  if (tg_op = 'DELETE') then
+    insert into public.audit_log (table_name, record_id, action, actor_sales_id)
+    values (tg_table_name, old.id, tg_op, actor);
+    return old;
+  else
+    insert into public.audit_log (table_name, record_id, action, actor_sales_id)
+    values (tg_table_name, new.id, tg_op, actor);
+    return new;
+  end if;
+end;
+$$;

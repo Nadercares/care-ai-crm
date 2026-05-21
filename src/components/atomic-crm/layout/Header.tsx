@@ -4,6 +4,7 @@ import {
   FileText,
   Import,
   ListChecks,
+  ScrollText,
   Settings,
   ShieldCheck,
   User,
@@ -105,6 +106,7 @@ const Header = () => {
                   <DocumentTemplatesMenu />
                   <CarriersMenu />
                   <ReportsMenu />
+                  <AuditLogMenu />
                   <ImportFromJsonMenuItem />
                 </UserMenu>
               </div>
@@ -255,6 +257,21 @@ const ReportsMenu = () => {
       <Link to="/reports" className="flex items-center gap-2">
         <BarChart3 />
         Reports
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const AuditLogMenu = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<AuditLogMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/audit-log" className="flex items-center gap-2">
+        <ScrollText />
+        Audit Log
       </Link>
     </DropdownMenuItem>
   );

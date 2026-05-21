@@ -517,7 +517,7 @@ directory" on demand.
 
 ---
 
-### Stage 12 — Agent 9: Security hardening
+### Stage 12 — Agent 9: Security hardening  ✅ DONE
 
 **Goal:** Lock the app down and prove it stays locked.
 
@@ -534,6 +534,38 @@ directory" on demand.
 
 **Done when:** A non-admin account cannot reach financial data, and the
 security advisor reports no warnings.
+
+> Delivered:
+> - **Row Level Security per role** — the financial tables (Stage 10) and the
+>   new audit log are restricted to owner/accounting/admin; their panels and
+>   pages also hide for everyone else.
+> - **Audit log** — the `audit_log` table plus a `record_audit()` trigger that
+>   records every insert/update/delete on the financial tables (who, what,
+>   when). It is written only by the trigger and readable only by finance
+>   roles. View it from the user menu → **Audit Log**.
+> - **Secrets** — a scan of all tracked files confirms no API keys or
+>   passwords are committed; the Anthropic and Mapbox keys live only in
+>   Supabase secrets, and only Supabase *publishable* (public) keys appear in
+>   `.env` files.
+> - **Edge Function hardening** — the `agent` and `orchestrator` functions now
+>   rate-limit each user to 30 runs per minute and cap instruction length;
+>   every function already validates its input.
+>
+> Still to do at launch (Stage 13): run the Supabase security advisor on the
+> production project and clear any warnings, and set up the backup routine
+> below.
+>
+> **Backup & recovery routine:** Supabase takes automatic daily backups on
+> paid plans — confirm they are enabled in the dashboard (Database → Backups).
+> Before any risky migration, take a manual backup. Keep the `supabase/`
+> folder in Git (it already is) so the entire schema and all Edge Functions
+> can be recreated. To recover: restore the Supabase backup, then
+> `npx supabase db push` and `npx supabase functions deploy` from this repo.
+>
+> Note: the `record_audit()` function is hand-written; if `npx supabase db
+> diff` ever reports a phantom change for it, run `npx supabase db dump
+> --local --schema public` and paste the exact text into
+> `supabase/schemas/02_functions.sql`.
 
 ---
 

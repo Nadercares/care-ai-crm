@@ -38,6 +38,7 @@ import { StateCompliancePage } from "../settings/StateCompliancePage";
 import { DocumentTemplatesPage } from "../settings/DocumentTemplatesPage";
 import { CarriersPage } from "../settings/CarriersPage";
 import { ReportsPage } from "../settings/ReportsPage";
+import { AuditLogPage } from "../settings/AuditLogPage";
 import {
   CONFIGURATION_STORE_KEY,
   type ConfigurationContextValue,
@@ -277,6 +278,7 @@ const DesktopAdmin = (
         />
         <Route path={CarriersPage.path} element={<CarriersPage />} />
         <Route path={ReportsPage.path} element={<ReportsPage />} />
+        <Route path={AuditLogPage.path} element={<AuditLogPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />

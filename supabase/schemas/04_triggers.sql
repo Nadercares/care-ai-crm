@@ -123,3 +123,12 @@ create or replace trigger on_auth_user_created
 create or replace trigger on_auth_user_updated
     after update on auth.users
     for each row execute function public.handle_update_user();
+
+-- Audit sensitive financial changes
+create or replace trigger audit_financial_ledger
+    after insert or update or delete on public.financial_ledger
+    for each row execute function public.record_audit();
+
+create or replace trigger audit_settlements
+    after insert or update or delete on public.settlements
+    for each row execute function public.record_audit();
