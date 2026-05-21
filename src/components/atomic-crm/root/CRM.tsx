@@ -35,6 +35,7 @@ import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
 import { TaskTemplatesPage } from "../settings/TaskTemplatesPage";
 import { StateCompliancePage } from "../settings/StateCompliancePage";
+import { DocumentTemplatesPage } from "../settings/DocumentTemplatesPage";
 import {
   CONFIGURATION_STORE_KEY,
   type ConfigurationContextValue,
@@ -267,6 +268,10 @@ const DesktopAdmin = (
         <Route
           path={StateCompliancePage.path}
           element={<StateCompliancePage />}
+        />
+        <Route
+          path={DocumentTemplatesPage.path}
+          element={<DocumentTemplatesPage />}
         />
         <Route path={ImportPage.path} element={<ImportPage />} />
       </CustomRoutes>

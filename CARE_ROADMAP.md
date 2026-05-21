@@ -342,7 +342,7 @@ enters a stage the matching tasks appear automatically.
 
 ---
 
-### Stage 6 — Agent 3: Documents & Email automation
+### Stage 6 — Agent 3: Documents & Email automation  ✅ DONE
 
 **Goal:** Auto-fill document templates and help manage claim email.
 
@@ -359,6 +359,18 @@ enters a stage the matching tasks appear automatically.
 
 **Done when:** Pick a template + a claim → get a filled document; a new claim
 email produces a draft reply.
+
+> Delivered: the **Document Templates** page (user menu) for text templates
+> with `{{token}}` fields; a **Documents & Email** panel on the claim screen to
+> fill a template for the claim and to log claim emails; the agent tools
+> `get_document_templates` and `get_claim_emails`; and the updated Documents &
+> Email agent that fills documents and drafts replies (drafts land in the AI
+> Agents panel).
+>
+> Scope note: templates are text bodies entered in the CRM (reliable and
+> beginner-friendly) rather than uploaded Word/PDF files, and claim email is
+> logged manually. Automatic Word/PDF generation and live Postmark inbound-mail
+> matching are good future enhancements.
 
 ---
 

@@ -1,4 +1,5 @@
 import {
+  FileText,
   Import,
   ListChecks,
   Settings,
@@ -99,6 +100,7 @@ const Header = () => {
                   </CanAccess>
                   <TaskTemplatesMenu />
                   <StateComplianceMenu />
+                  <DocumentTemplatesMenu />
                   <ImportFromJsonMenuItem />
                 </UserMenu>
               </div>
@@ -204,6 +206,21 @@ const StateComplianceMenu = () => {
       <Link to="/state-compliance" className="flex items-center gap-2">
         <ShieldCheck />
         State Compliance
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const DocumentTemplatesMenu = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<DocumentTemplatesMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/document-templates" className="flex items-center gap-2">
+        <FileText />
+        Document Templates
       </Link>
     </DropdownMenuItem>
   );

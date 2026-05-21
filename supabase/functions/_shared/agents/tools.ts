@@ -319,12 +319,50 @@ const getStateCompliance: ToolDefinition = {
   },
 };
 
+const getDocumentTemplates: ToolDefinition = {
+  schema: {
+    name: "get_document_templates",
+    description:
+      "List the firm's document templates (letters and forms). Each has a name, description, category, the template body containing {{placeholder}} tokens, and the list of placeholders to fill.",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async () => {
+    const { data } = await supabaseAdmin
+      .from("document_templates")
+      .select("id, name, description, category, body, placeholders")
+      .order("name", { ascending: true });
+    return { templates: data ?? [] };
+  },
+};
+
+const getClaimEmails: ToolDefinition = {
+  schema: {
+    name: "get_claim_emails",
+    description:
+      "Get the emails logged on this claim (inbound and outbound), most recent first. Use this to read correspondence and draft replies.",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async (_input, ctx) => {
+    const { data } = await supabaseAdmin
+      .from("claim_emails")
+      .select(
+        "id, direction, from_email, from_name, to_email, subject, body, received_at",
+      )
+      .eq("deal_id", ctx.dealId)
+      .order("received_at", { ascending: false })
+      .limit(30);
+    return { emails: data ?? [] };
+  },
+};
+
 export const TOOLS: Record<string, ToolDefinition> = {
   get_claim: getClaim,
   get_policy: getPolicy,
   get_policy_document: getPolicyDocument,
   save_policy_details: savePolicyDetails,
   get_state_compliance: getStateCompliance,
+  get_document_templates: getDocumentTemplates,
+  get_claim_emails: getClaimEmails,
   get_agent_outputs: getAgentOutputs,
   create_task: createTask,
 };

@@ -30,6 +30,7 @@ import { ContactList } from "./ContactList";
 import { findDealLabel, formatISODateString } from "./dealUtils";
 import { AgentsPanel } from "@/components/care-ai/AgentsPanel";
 import { PolicyPanel } from "@/components/care-ai/PolicyPanel";
+import { DocumentsPanel } from "@/components/care-ai/DocumentsPanel";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -169,6 +170,8 @@ const DealShowContent = () => {
           )}
 
           <PolicyPanel dealId={Number(record.id)} />
+
+          <DocumentsPanel dealId={Number(record.id)} />
 
           <AgentsPanel dealId={Number(record.id)} />
 
