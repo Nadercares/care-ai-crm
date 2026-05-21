@@ -53,6 +53,10 @@ create or replace trigger set_agent_outputs_sales_id_trigger
     before insert on public.agent_outputs
     for each row execute function public.set_sales_id_default();
 
+create or replace trigger set_state_compliance_rules_sales_id_trigger
+    before insert on public.state_compliance_rules
+    for each row execute function public.set_sales_id_default();
+
 -- Auto-fetch company logo from website favicon on save
 create or replace trigger company_saved
     before insert or update on public.companies

@@ -276,11 +276,55 @@ const createTask: ToolDefinition = {
   },
 };
 
+const getStateCompliance: ToolDefinition = {
+  schema: {
+    name: "get_state_compliance",
+    description:
+      "Get the firm's compliance reference for the state where this claim's loss occurred: public-adjuster licensing, fee rules, contract rules, claim-handling deadlines, required disclosures, statute of limitations, and dispute options. Returns configured:false if no reference has been entered for that state yet.",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async (_input, ctx) => {
+    const { data: deal } = await supabaseAdmin
+      .from("deals")
+      .select("loss_state")
+      .eq("id", ctx.dealId)
+      .single();
+    const raw = (deal?.loss_state ?? "").trim();
+    if (!raw) {
+      return {
+        error:
+          "This claim has no loss state set. Set the claim's loss state before running a compliance review.",
+      };
+    }
+    let { data } = await supabaseAdmin
+      .from("state_compliance_rules")
+      .select("*")
+      .ilike("state_abbr", raw)
+      .limit(1);
+    if (!data?.length) {
+      ({ data } = await supabaseAdmin
+        .from("state_compliance_rules")
+        .select("*")
+        .ilike("state_name", `%${raw}%`)
+        .limit(1));
+    }
+    if (!data?.length) {
+      return {
+        state: raw,
+        configured: false,
+        message: `No compliance reference is on file for "${raw}". Give general guidance and recommend the firm add a verified reference for this state.`,
+      };
+    }
+    return { state: raw, configured: true, rules: data[0] };
+  },
+};
+
 export const TOOLS: Record<string, ToolDefinition> = {
   get_claim: getClaim,
   get_policy: getPolicy,
   get_policy_document: getPolicyDocument,
   save_policy_details: savePolicyDetails,
+  get_state_compliance: getStateCompliance,
   get_agent_outputs: getAgentOutputs,
   create_task: createTask,
 };

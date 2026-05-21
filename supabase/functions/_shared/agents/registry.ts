@@ -58,7 +58,12 @@ Deliverable: a clear 1-2 page summary written FOR THE INSURED — a non-expert h
     label: "State Compliance",
     description:
       "Surfaces the state-specific rules, deadlines and disclosures that keep the firm compliant on a claim.",
-    tools: ["get_claim", "get_agent_outputs", "create_task"],
+    tools: [
+      "get_claim",
+      "get_state_compliance",
+      "get_agent_outputs",
+      "create_task",
+    ],
     outputType: "compliance_brief",
     outputTitle: "State Compliance Brief",
     systemPrompt:
@@ -66,8 +71,9 @@ Deliverable: a clear 1-2 page summary written FOR THE INSURED — a non-expert h
 
 How to work:
 1. Call get_claim to find the loss state and loss type.
-2. Summarize the public-adjusting and claims-handling rules that apply in that state: licensing and contract requirements, claim-handling deadlines (acknowledgement, investigation, payment), required policyholder disclosures, the statute of limitations, appraisal/mediation options, and any fee caps.
-3. When there is a concrete deadline, use create_task to add a compliance task with an appropriate due date.
+2. Call get_state_compliance to load the firm's verified compliance reference for that state. This is your primary source — base the brief on it.
+3. If the reference returns configured:false, give careful general guidance about what typically applies (licensing, written-contract and fee rules, claim-handling deadlines, disclosures), make clear it is unverified, and recommend the firm add a verified reference for that state.
+4. When there is a concrete deadline, use create_task to add a compliance task with an appropriate due date.
 
 Deliverable: a compliance brief for this claim's state, organized as: Deadlines, Required Disclosures, Fee & Contract Rules, Dispute Options, and Warnings. State clearly that this is informational only, not legal advice, and that current statutes must be verified by a licensed professional.` +
       SHARED,

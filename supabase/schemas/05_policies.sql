@@ -20,6 +20,7 @@ alter table public.task_templates enable row level security;
 alter table public.task_template_items enable row level security;
 alter table public.agent_runs enable row level security;
 alter table public.agent_outputs enable row level security;
+alter table public.state_compliance_rules enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
@@ -86,3 +87,4 @@ create policy "Enable all access for authenticated users" on public.task_templat
 create policy "Enable all access for authenticated users" on public.task_template_items to authenticated using (true) with check (true);
 create policy "Enable all access for authenticated users" on public.agent_runs to authenticated using (true) with check (true);
 create policy "Enable all access for authenticated users" on public.agent_outputs to authenticated using (true) with check (true);
+create policy "Enable all access for authenticated users" on public.state_compliance_rules to authenticated using (true) with check (true);

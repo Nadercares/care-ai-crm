@@ -314,7 +314,7 @@ enters a stage the matching tasks appear automatically.
 
 ---
 
-### Stage 5 — Agent 2: State Compliance
+### Stage 5 — Agent 2: State Compliance  ✅ DONE
 
 **Goal:** An agent that surfaces the state-specific rules for a claim.
 
@@ -329,6 +329,13 @@ enters a stage the matching tasks appear automatically.
    day 5").
 
 **Done when:** Opening a claim shows an accurate compliance brief for its state.
+
+> Delivered: the **State Compliance** page (open it from the user menu) with a
+> row for every US state + DC for the firm to fill in with verified rules; the
+> `get_state_compliance` agent tool; and the updated State Compliance agent,
+> which reads the firm's reference for the claim's loss state, writes a
+> compliance brief, and creates deadline tasks. The firm must enter verified
+> rules per state — rows ship blank on purpose.
 
 > **Important:** This is decision-support, not legal advice. Every brief must
 > carry a disclaimer and be reviewed by a licensed professional.

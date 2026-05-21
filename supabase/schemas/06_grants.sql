@@ -139,6 +139,10 @@ grant all on table public.agent_outputs to anon;
 grant all on table public.agent_outputs to authenticated;
 grant all on table public.agent_outputs to service_role;
 
+grant all on table public.state_compliance_rules to anon;
+grant all on table public.state_compliance_rules to authenticated;
+grant all on table public.state_compliance_rules to service_role;
+
 -- View grants
 grant all on table public.activity_log to anon;
 grant all on table public.activity_log to authenticated;
@@ -225,6 +229,10 @@ grant all on sequence public.agent_runs_id_seq to service_role;
 grant all on sequence public.agent_outputs_id_seq to anon;
 grant all on sequence public.agent_outputs_id_seq to authenticated;
 grant all on sequence public.agent_outputs_id_seq to service_role;
+
+grant all on sequence public.state_compliance_rules_id_seq to anon;
+grant all on sequence public.state_compliance_rules_id_seq to authenticated;
+grant all on sequence public.state_compliance_rules_id_seq to service_role;
 
 -- Default privileges
 alter default privileges for role postgres in schema public grant all on sequences to postgres;

@@ -1,4 +1,11 @@
-import { Import, ListChecks, Settings, User, Users } from "lucide-react";
+import {
+  Import,
+  ListChecks,
+  Settings,
+  ShieldCheck,
+  User,
+  Users,
+} from "lucide-react";
 import { CanAccess, useTranslate, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
@@ -91,6 +98,7 @@ const Header = () => {
                     <SettingsMenu />
                   </CanAccess>
                   <TaskTemplatesMenu />
+                  <StateComplianceMenu />
                   <ImportFromJsonMenuItem />
                 </UserMenu>
               </div>
@@ -181,6 +189,21 @@ const TaskTemplatesMenu = () => {
       <Link to="/task-templates" className="flex items-center gap-2">
         <ListChecks />
         Task Templates
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const StateComplianceMenu = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<StateComplianceMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/state-compliance" className="flex items-center gap-2">
+        <ShieldCheck />
+        State Compliance
       </Link>
     </DropdownMenuItem>
   );
