@@ -29,6 +29,7 @@ import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel, formatISODateString } from "./dealUtils";
 import { AgentsPanel } from "@/components/care-ai/AgentsPanel";
+import { CarrierPanel } from "@/components/care-ai/CarrierPanel";
 import { PolicyPanel } from "@/components/care-ai/PolicyPanel";
 import { DocumentsPanel } from "@/components/care-ai/DocumentsPanel";
 
@@ -168,6 +169,8 @@ const DealShowContent = () => {
               <p className="text-sm leading-6">{record.description}</p>
             </div>
           )}
+
+          <CarrierPanel dealId={Number(record.id)} />
 
           <PolicyPanel dealId={Number(record.id)} />
 

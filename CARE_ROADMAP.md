@@ -403,7 +403,7 @@ data for the date of loss.
 
 ---
 
-### Stage 8 — Agent 5: Strategy & Carrier-Pattern Research
+### Stage 8 — Agent 5: Strategy & Carrier-Pattern Research  ✅ DONE
 
 **Goal:** An agent that recommends how to position the claim.
 
@@ -417,6 +417,14 @@ data for the date of loss.
 
 **Done when:** A claim shows a strategy memo citing specific policy clauses and
 carrier patterns.
+
+> Delivered: the **Carrier** panel on the claim screen — set the claim's
+> carrier, record carrier notes/known patterns, and manage carrier adjusters
+> (names, license numbers, contacts); the `get_carrier_intelligence` agent
+> tool, which gathers the carrier record, adjusters, and correspondence across
+> all of the firm's claims with that carrier; and the updated Strategy &
+> Research agent, which reads the policy, compliance findings, carrier
+> intelligence and correspondence to write a strategy memo.
 
 ---
 

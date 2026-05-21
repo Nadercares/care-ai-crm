@@ -129,18 +129,25 @@ Deliverable: a weather report with sections: Event Summary, Recorded Conditions 
     label: "Strategy & Research",
     description:
       "The firm's strategist: reviews policy and carrier patterns and recommends how to position the claim.",
-    tools: ["get_claim", "get_policy", "get_agent_outputs"],
+    tools: [
+      "get_claim",
+      "get_policy",
+      "get_carrier_intelligence",
+      "get_claim_emails",
+      "get_agent_outputs",
+    ],
     outputType: "strategy_memo",
     outputTitle: "Claim Strategy Memo",
     systemPrompt:
       `You are the Strategy & Research agent — the firm's strategist.
 
 How to work:
-1. Call get_claim, get_policy and get_agent_outputs to review everything known about the claim, including other agents' findings.
-2. Analyze the carrier's likely position and known patterns and practices (common denial reasons, delay tactics, clauses they lean on).
-3. Recommend how to position the claim using specific policy language and state-law/regulatory leverage.
+1. Call get_claim, get_policy and get_agent_outputs to review everything known about the claim, including the Policy Review and State Compliance findings.
+2. Call get_carrier_intelligence for the carrier record, its adjusters, and correspondence logged across the firm's claims with this carrier. Call get_claim_emails for this claim's own correspondence.
+3. Analyze the carrier's patterns and practices from that real correspondence and the carrier notes — common denial reasons, delay tactics, the clauses they lean on. Do not invent patterns; if there is little history, say so.
+4. Recommend how to position the claim using specific policy language and state-law/regulatory leverage.
 
-Deliverable: a strategy memo with sections: Current Position, Strengths, Risks & Weaknesses, Carrier Tendencies, Recommended Arguments (each tied to a specific policy clause or rule), and Next Moves. Be specific — name the clause or rule behind each argument.` +
+Deliverable: a strategy memo with sections: Current Position, Strengths, Risks & Weaknesses, Carrier Tendencies (grounded in the correspondence you reviewed), Recommended Arguments (each tied to a specific policy clause or rule), and Next Moves. Be specific — name the clause or rule behind each argument.` +
       SHARED,
   },
   estimate_comparison: {

@@ -421,6 +421,68 @@ const getWeatherData: ToolDefinition = {
   },
 };
 
+const getCarrierIntelligence: ToolDefinition = {
+  schema: {
+    name: "get_carrier_intelligence",
+    description:
+      "Get what the firm knows about this claim's insurance carrier: the carrier record and notes (known patterns and practices), the carrier's adjusters (names, license numbers, contact info), and recent correspondence logged across all of the firm's claims with this carrier. Use this to identify how the carrier tends to handle claims.",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async (_input, ctx) => {
+    const { data: deal } = await supabaseAdmin
+      .from("deals")
+      .select("primary_carrier_id")
+      .eq("id", ctx.dealId)
+      .single();
+    const carrierId = deal?.primary_carrier_id;
+    if (!carrierId) {
+      return {
+        configured: false,
+        message:
+          "This claim has no carrier set. Set the claim's carrier in the Carrier panel on the claim screen to analyze carrier patterns.",
+      };
+    }
+
+    const { data: carrier } = await supabaseAdmin
+      .from("carriers")
+      .select("id, name, naic_code, phone, email, claims_portal_url, notes")
+      .eq("id", carrierId)
+      .single();
+    const { data: adjusters } = await supabaseAdmin
+      .from("carrier_adjusters")
+      .select(
+        "first_name, last_name, license_number, license_state, adjuster_type, phone, email, notes",
+      )
+      .eq("carrier_id", carrierId);
+    const { data: carrierDeals } = await supabaseAdmin
+      .from("deals")
+      .select("id")
+      .eq("primary_carrier_id", carrierId);
+
+    const dealIds = (carrierDeals ?? []).map((d) => d.id);
+    let correspondence: unknown[] = [];
+    if (dealIds.length) {
+      const { data } = await supabaseAdmin
+        .from("claim_emails")
+        .select(
+          "deal_id, direction, from_name, from_email, subject, body, received_at",
+        )
+        .in("deal_id", dealIds)
+        .order("received_at", { ascending: false })
+        .limit(40);
+      correspondence = data ?? [];
+    }
+
+    return {
+      configured: true,
+      carrier,
+      adjusters: adjusters ?? [],
+      claims_with_carrier: dealIds.length,
+      correspondence,
+    };
+  },
+};
+
 export const TOOLS: Record<string, ToolDefinition> = {
   get_claim: getClaim,
   get_policy: getPolicy,
@@ -430,6 +492,7 @@ export const TOOLS: Record<string, ToolDefinition> = {
   get_document_templates: getDocumentTemplates,
   get_claim_emails: getClaimEmails,
   get_weather_data: getWeatherData,
+  get_carrier_intelligence: getCarrierIntelligence,
   get_agent_outputs: getAgentOutputs,
   create_task: createTask,
 };
