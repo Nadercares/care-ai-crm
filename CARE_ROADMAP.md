@@ -288,7 +288,7 @@ enters a stage the matching tasks appear automatically.
 
 ---
 
-### Stage 4 — Agent 1: Policy Review
+### Stage 4 — Agent 1: Policy Review  ✅ DONE
 
 **Goal:** An agent that reads a policy and explains it to the client.
 
@@ -304,6 +304,13 @@ enters a stage the matching tasks appear automatically.
 5. Add a "Policy Summary" view with an Approve button.
 
 **Done when:** Upload a policy → run the agent → read a clean client summary.
+
+> Delivered: the **Insurance Policy** panel on the claim screen (upload a PDF,
+> view it, see extracted data), the `extract-policy` Edge Function (pulls text
+> out of the PDF with `unpdf`), the agent tools `get_policy_document` and
+> `save_policy_details`, and an **Approve** button on every agent output. The
+> Policy Review agent reads the document, writes the structured coverages back
+> to the policy record, and produces the client summary as a reviewable draft.
 
 ---
 

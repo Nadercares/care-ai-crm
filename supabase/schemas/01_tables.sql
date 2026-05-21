@@ -185,6 +185,8 @@ create table public.policies (
     limits jsonb not null default '{}'::jsonb,
     deductibles jsonb not null default '{}'::jsonb,
     document_path text,
+    document_name text,
+    document_text text,
     sales_id bigint
 );
 

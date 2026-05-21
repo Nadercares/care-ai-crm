@@ -10,6 +10,7 @@ import {
   fetchAgentRuns,
   runOrchestrator,
   runSpecialistAgent,
+  setAgentOutputStatus,
   type AgentRun,
 } from "@/api/agents";
 
@@ -72,6 +73,18 @@ export function AgentsPanel({ dealId }: { dealId: number }) {
   const runOne = useMutation({
     mutationFn: (agentType: string) => runSpecialistAgent(agentType, dealId),
     onSuccess: invalidate,
+    onError: (e) => setError(e instanceof Error ? e.message : String(e)),
+  });
+  const review = useMutation({
+    mutationFn: ({
+      id,
+      status,
+    }: {
+      id: number;
+      status: "approved" | "draft";
+    }) => setAgentOutputStatus(id, status),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["agent_outputs", dealId] }),
     onError: (e) => setError(e instanceof Error ? e.message : String(e)),
   });
 
@@ -175,14 +188,53 @@ export function AgentsPanel({ dealId }: { dealId: number }) {
                   <span className="text-[11px] text-muted-foreground">
                     {AGENT_LABELS[output.agent_type] ?? output.agent_type}
                   </span>
-                  <Badge variant="secondary" className="text-[10px]">
+                  <Badge
+                    variant={
+                      output.status === "approved" ? "default" : "outline"
+                    }
+                    className="text-[10px]"
+                  >
                     {output.status}
                   </Badge>
                 </span>
               </button>
               {expanded === output.id && (
-                <div className="px-3 pb-3 pt-2 border-t text-xs whitespace-pre-wrap leading-5">
-                  {output.content}
+                <div className="border-t">
+                  <div className="px-3 pt-2 text-xs whitespace-pre-wrap leading-5">
+                    {output.content}
+                  </div>
+                  <div className="flex justify-end gap-2 px-3 py-2">
+                    {output.status === "approved" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-xs"
+                        onClick={() =>
+                          review.mutate({
+                            id: output.id,
+                            status: "draft",
+                          })
+                        }
+                        disabled={review.isPending}
+                      >
+                        Revert to draft
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() =>
+                          review.mutate({
+                            id: output.id,
+                            status: "approved",
+                          })
+                        }
+                        disabled={review.isPending}
+                      >
+                        Approve
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

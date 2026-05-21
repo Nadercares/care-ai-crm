@@ -29,6 +29,7 @@ import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel, formatISODateString } from "./dealUtils";
 import { AgentsPanel } from "@/components/care-ai/AgentsPanel";
+import { PolicyPanel } from "@/components/care-ai/PolicyPanel";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -166,6 +167,8 @@ const DealShowContent = () => {
               <p className="text-sm leading-6">{record.description}</p>
             </div>
           )}
+
+          <PolicyPanel dealId={Number(record.id)} />
 
           <AgentsPanel dealId={Number(record.id)} />
 

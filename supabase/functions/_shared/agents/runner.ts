@@ -173,7 +173,7 @@ export async function executeAgentRun(
         toolResults.push({
           type: "tool_result",
           tool_use_id: tu.id,
-          content: JSON.stringify(result).slice(0, 60000),
+          content: JSON.stringify(result).slice(0, 250000),
         });
       }
       messages.push({ role: "user", content: toolResults });

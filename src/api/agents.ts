@@ -150,3 +150,15 @@ export async function fetchAgentOutputs(
   if (error) throw new Error(error.message);
   return (data ?? []) as AgentOutput[];
 }
+
+/** Marks an agent output as approved or back to draft (review workflow). */
+export async function setAgentOutputStatus(
+  id: number,
+  status: "approved" | "draft",
+): Promise<void> {
+  const { error } = await getSupabaseClient()
+    .from("agent_outputs")
+    .update({ status })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}

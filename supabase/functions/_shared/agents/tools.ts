@@ -60,15 +60,120 @@ const getPolicy: ToolDefinition = {
   schema: {
     name: "get_policy",
     description:
-      "Get the insurance policy/policies attached to this claim, including coverages, endorsements, exclusions, limits and deductibles. Returns an empty list if no policy has been entered yet.",
+      "Get the insurance policy/policies attached to this claim: metadata plus the structured coverages, endorsements, exclusions, limits and deductibles entered so far. 'document_name' shows whether a policy file has been uploaded. Returns an empty list if no policy has been added yet.",
     input_schema: { type: "object", properties: {} },
   },
   run: async (_input, ctx) => {
     const { data } = await supabaseAdmin
       .from("policies")
-      .select("*")
+      .select(
+        "id, deal_id, carrier_id, policy_number, named_insured, policy_type, effective_date, expiration_date, coverages, endorsements, exclusions, limits, deductibles, document_name",
+      )
       .eq("deal_id", ctx.dealId);
     return { policies: data ?? [] };
+  },
+};
+
+const getPolicyDocument: ToolDefinition = {
+  schema: {
+    name: "get_policy_document",
+    description:
+      "Get the full extracted text of the uploaded policy document(s) for this claim. Use this to read the actual policy wording before interpreting coverages. If 'document_text' is null the file has not been uploaded or could not be read yet.",
+    input_schema: { type: "object", properties: {} },
+  },
+  run: async (_input, ctx) => {
+    const { data } = await supabaseAdmin
+      .from("policies")
+      .select("id, document_name, document_text")
+      .eq("deal_id", ctx.dealId);
+    return { documents: data ?? [] };
+  },
+};
+
+const savePolicyDetails: ToolDefinition = {
+  schema: {
+    name: "save_policy_details",
+    description:
+      "Save the structured policy details you extracted back onto a policy record so the rest of the CRM can use them. Only include fields you are confident about.",
+    input_schema: {
+      type: "object",
+      properties: {
+        policy_id: {
+          type: "number",
+          description: "The id of the policy to update (from get_policy).",
+        },
+        policy_number: { type: "string" },
+        named_insured: { type: "string" },
+        policy_type: {
+          type: "string",
+          description: "e.g. 'HO-3', 'Commercial Property', 'Dwelling'.",
+        },
+        effective_date: {
+          type: "string",
+          description: "ISO date, YYYY-MM-DD.",
+        },
+        expiration_date: {
+          type: "string",
+          description: "ISO date, YYYY-MM-DD.",
+        },
+        coverages: {
+          type: "object",
+          description: "Map of coverage name to its description/details.",
+        },
+        endorsements: {
+          type: "array",
+          description: "List of endorsements on the policy.",
+        },
+        exclusions: {
+          type: "array",
+          description: "List of relevant exclusions.",
+        },
+        limits: {
+          type: "object",
+          description: "Map of coverage to its limit amount.",
+        },
+        deductibles: {
+          type: "object",
+          description: "Map of deductible type to amount.",
+        },
+      },
+      required: ["policy_id"],
+    },
+  },
+  run: async (input, ctx) => {
+    const policyId = Number(input.policy_id);
+    if (!Number.isInteger(policyId)) {
+      return { error: "A valid 'policy_id' is required." };
+    }
+    const update: Record<string, unknown> = {};
+    for (const key of [
+      "policy_number",
+      "named_insured",
+      "policy_type",
+      "effective_date",
+      "expiration_date",
+      "coverages",
+      "endorsements",
+      "exclusions",
+      "limits",
+      "deductibles",
+    ]) {
+      if (input[key] !== undefined && input[key] !== null) {
+        update[key] = input[key];
+      }
+    }
+    if (Object.keys(update).length === 0) {
+      return { error: "No policy fields were provided to save." };
+    }
+    const { error } = await supabaseAdmin
+      .from("policies")
+      .update(update)
+      .eq("id", policyId)
+      .eq("deal_id", ctx.dealId);
+    if (error) {
+      return { error: `Could not save policy details: ${error.message}` };
+    }
+    return { saved: true, policy_id: policyId, fields: Object.keys(update) };
   },
 };
 
@@ -174,6 +279,8 @@ const createTask: ToolDefinition = {
 export const TOOLS: Record<string, ToolDefinition> = {
   get_claim: getClaim,
   get_policy: getPolicy,
+  get_policy_document: getPolicyDocument,
+  save_policy_details: savePolicyDetails,
   get_agent_outputs: getAgentOutputs,
   create_task: createTask,
 };
