@@ -105,19 +105,25 @@ npx supabase functions deploy postmark
 npx supabase functions deploy delete_note_attachments
 npx supabase functions deploy merge_contacts
 npx supabase functions deploy extract-policy
+npx supabase functions deploy chat
 ```
 
-The `mcp` function is the Model Context Protocol server that will, in a future iteration, let the AI assistant query the CRM database directly. It validates SQL before executing.
+The `mcp` function is a Model Context Protocol server (OAuth-gated, SQL-validated) for external MCP clients — Claude Desktop and similar — that want to query the CRM directly.
 
-The `extract-policy` function powers the AI policy-PDF extractor in the Policy edit page. Required secret on the Supabase project:
+The `extract-policy` function powers the AI policy-PDF extractor in the Policy edit page.
+
+The `chat` function is the server-side agent backing the in-app chat widget. It runs an Anthropic agentic loop with a single `query_crm` tool (read-only SELECT, validated). Required secrets:
 
 ```bash
 npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-# optional override (defaults to claude-sonnet-4-6)
+# optional overrides (default model is claude-sonnet-4-6)
 npx supabase secrets set ANTHROPIC_MODEL=claude-sonnet-4-6
+npx supabase secrets set ANTHROPIC_CHAT_MODEL=claude-sonnet-4-6
 ```
 
-The Anthropic key is read **only inside the edge function** and never reaches the browser, unlike the OpenRouter key used by the chat panel today.
+The Anthropic key is read **only inside the edge functions** and never reaches the browser. Once the `chat` function is deployed, the old `VITE_OPENROUTER_API_KEY` is no longer used and should be removed from the Railway / hosting environment.
+
+**Chat security trade-off (read this).** The `chat` function runs SQL with a service-level database connection, which bypasses Row-Level Security. Every authenticated CRM user therefore has read access to all CRM tables via chat. This is acceptable for a small-team firm where every signed-in user is staff; if you ever invite outside users (insureds, partners, contractors) into Supabase auth, lock chat down before doing so (per-role connections, or move queries through PostgREST).
 
 ### Auth
 
