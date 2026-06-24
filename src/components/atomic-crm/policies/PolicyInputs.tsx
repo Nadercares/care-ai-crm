@@ -7,10 +7,15 @@ import { ReferenceInput } from "@/components/admin/reference-input";
 import { Separator } from "@/components/ui/separator";
 
 import { POLICY_TYPES, US_STATES } from "../claimsConsts";
+import { PolicyExtractor } from "./PolicyExtractor";
 
 export function PolicyInputs() {
   return (
     <div className="space-y-6 w-full">
+      <PolicyExtractor />
+
+      <Separator />
+
       <section className="space-y-3">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           Insured & carrier
@@ -124,13 +129,13 @@ export function PolicyInputs() {
         </h3>
         <TextInput
           source="document_url"
-          label="Policy document URL"
-          helperText="Link to PDF in storage / Dropbox"
+          label="Policy document path"
+          helperText="Storage path; set automatically when you upload a PDF above"
         />
         <TextInput
           source="summary"
           multiline
-          rows={4}
+          rows={5}
           helperText="AI-extracted or hand-entered summary of coverages, endorsements, exclusions"
         />
         <TextInput source="notes" multiline rows={3} />

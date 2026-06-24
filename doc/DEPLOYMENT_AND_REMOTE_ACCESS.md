@@ -104,9 +104,20 @@ npx supabase functions deploy update_password
 npx supabase functions deploy postmark
 npx supabase functions deploy delete_note_attachments
 npx supabase functions deploy merge_contacts
+npx supabase functions deploy extract-policy
 ```
 
 The `mcp` function is the Model Context Protocol server that will, in a future iteration, let the AI assistant query the CRM database directly. It validates SQL before executing.
+
+The `extract-policy` function powers the AI policy-PDF extractor in the Policy edit page. Required secret on the Supabase project:
+
+```bash
+npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+# optional override (defaults to claude-sonnet-4-6)
+npx supabase secrets set ANTHROPIC_MODEL=claude-sonnet-4-6
+```
+
+The Anthropic key is read **only inside the edge function** and never reaches the browser, unlike the OpenRouter key used by the chat panel today.
 
 ### Auth
 
