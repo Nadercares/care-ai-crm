@@ -132,3 +132,52 @@ select count(sub.id) as is_initialized
 from (
     select sales.id from public.sales limit 1
 ) sub;
+
+create or replace view public.claims_summary with (security_invoker = on) as
+select
+    cl.id,
+    cl.created_at,
+    cl.updated_at,
+    cl.contact_id,
+    cl.policy_id,
+    cl.carrier_id,
+    cl.carrier_adjuster_id,
+    cl.deal_id,
+    cl.claim_number,
+    cl.internal_claim_number,
+    cl.date_of_loss,
+    cl.date_reported,
+    cl.type_of_loss,
+    cl.cause_of_loss,
+    cl.loss_location_address,
+    cl.loss_location_city,
+    cl.loss_location_state,
+    cl.loss_location_zip,
+    cl.status,
+    cl.description,
+    cl.assigned_pa_sales_id,
+    cl.sales_id,
+    co.first_name as insured_first_name,
+    co.last_name as insured_last_name,
+    car.name as carrier_name,
+    car.naic_code as carrier_naic,
+    (ca.first_name || ' ' || ca.last_name) as carrier_adjuster_name,
+    ca.license_number as carrier_adjuster_license,
+    p.policy_number,
+    p.policy_type,
+    s.settlement_amount,
+    s.method as settlement_method,
+    s.settled_at,
+    s.days_to_settle,
+    count(distinct e.id) as nb_estimates
+from public.claims cl
+    left join public.contacts co on co.id = cl.contact_id
+    left join public.carriers car on car.id = cl.carrier_id
+    left join public.carrier_adjusters ca on ca.id = cl.carrier_adjuster_id
+    left join public.policies p on p.id = cl.policy_id
+    left join public.settlements s on s.claim_id = cl.id
+    left join public.estimates e on e.claim_id = cl.id
+group by cl.id, co.first_name, co.last_name, car.name, car.naic_code,
+         ca.first_name, ca.last_name, ca.license_number,
+         p.policy_number, p.policy_type,
+         s.settlement_amount, s.method, s.settled_at, s.days_to_settle;

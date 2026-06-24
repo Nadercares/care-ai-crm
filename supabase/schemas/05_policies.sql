@@ -67,3 +67,20 @@ create policy "Enable update for admins" on public.configuration for update to a
 
 -- Favicons excluded domains
 create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);
+
+-- Claims domain RLS (authenticated users have full access; refine later if/when client/contractor portals are added)
+alter table public.carriers enable row level security;
+alter table public.carrier_adjusters enable row level security;
+alter table public.policies enable row level security;
+alter table public.claims enable row level security;
+alter table public.estimates enable row level security;
+alter table public.estimate_line_items enable row level security;
+alter table public.settlements enable row level security;
+
+create policy "Carriers full access" on public.carriers for all to authenticated using (true) with check (true);
+create policy "Carrier adjusters full access" on public.carrier_adjusters for all to authenticated using (true) with check (true);
+create policy "Policies full access" on public.policies for all to authenticated using (true) with check (true);
+create policy "Claims full access" on public.claims for all to authenticated using (true) with check (true);
+create policy "Estimates full access" on public.estimates for all to authenticated using (true) with check (true);
+create policy "Estimate line items full access" on public.estimate_line_items for all to authenticated using (true) with check (true);
+create policy "Settlements full access" on public.settlements for all to authenticated using (true) with check (true);
