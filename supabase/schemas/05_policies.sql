@@ -84,3 +84,6 @@ create policy "Claims full access" on public.claims for all to authenticated usi
 create policy "Estimates full access" on public.estimates for all to authenticated using (true) with check (true);
 create policy "Estimate line items full access" on public.estimate_line_items for all to authenticated using (true) with check (true);
 create policy "Settlements full access" on public.settlements for all to authenticated using (true) with check (true);
+
+alter table public.state_law_summaries enable row level security;
+create policy "State law summaries full access" on public.state_law_summaries for all to authenticated using (true) with check (true);

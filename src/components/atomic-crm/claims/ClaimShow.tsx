@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { ClaimStatusBadge } from "./ClaimStatusBadge";
 import { EstimateComparator } from "./EstimateComparator";
+import { StateLawChecklist } from "./StateLawChecklist";
 
 export function ClaimShow() {
   return (
@@ -83,6 +84,10 @@ export function ClaimShow() {
 
         <div className="lg:col-span-3">
           <EstimateComparator />
+        </div>
+
+        <div className="lg:col-span-3">
+          <StateLawChecklist />
         </div>
       </div>
     </Show>

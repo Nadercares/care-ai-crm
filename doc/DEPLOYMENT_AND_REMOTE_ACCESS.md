@@ -128,6 +128,20 @@ The Anthropic key is read **only inside the edge functions** and never reaches t
 
 **Chat security trade-off (read this).** The `chat` function runs SQL with a service-level database connection, which bypasses Row-Level Security. Every authenticated CRM user therefore has read access to all CRM tables via chat. This is acceptable for a small-team firm where every signed-in user is staff; if you ever invite outside users (insureds, partners, contractors) into Supabase auth, lock chat down before doing so (per-role connections, or move queries through PostgREST).
 
+### State-law compliance KB
+
+The new `state_law_summaries` table is the firm's curated per-(state, topic) compliance knowledge base. Every seeded row ships with `status = 'draft'` and is a **research checklist**, not an authoritative answer.
+
+Before any seeded row appears on a Claim page in production:
+
+1. The firm's compliance lead reviews the draft and either:
+   - Rewrites the `summary` with verified, current content and adds the live statute number to `source_citation`, then sets `status = 'active'` and `reviewed_by_sales_id` to their own sales user id, OR
+   - Sets `status = 'retired'` if the row is irrelevant.
+2. The "State law cheat sheet" card on the Claim page only shows `active` rows by default. Staff can toggle "Show drafts too" to see research checklists during research, but those carry a draft badge.
+3. The chat agent has been instructed to **only** quote active rows. If asked a state-law question with no active row, it tells the user "Route to the firm's compliance lead." It will not fall back to its training memory of statutes.
+
+Seeded Florida draft topics: `pa_licensing`, `pa_fee_caps`, `pa_contract_requirements`, `pa_solicitation_rules`, `statute_of_limitations`, `appraisal_clause`, `mediation_program`, `bad_faith_standard`, `matching_law`, `anti_concurrent_causation`. Add more states by inserting rows under the same topic keys.
+
 ### Auth
 
 Enable the providers you need under Supabase → Authentication → Providers:

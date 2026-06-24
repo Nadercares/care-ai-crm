@@ -442,3 +442,22 @@ export type Settlement = {
   sales_id?: Identifier;
   created_at?: string;
 } & Pick<RaRecord, "id">;
+
+// --- State-law compliance KB ---
+
+export type StateLawStatus = "draft" | "active" | "retired";
+
+export type StateLawSummary = {
+  state_abbr: string;
+  topic: string;
+  title: string;
+  summary: string;
+  source_citation?: string | null;
+  applies_to?: string[];
+  last_reviewed_at?: string | null;
+  reviewed_by_sales_id?: Identifier | null;
+  status: StateLawStatus;
+  notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;
