@@ -106,11 +106,14 @@ npx supabase functions deploy delete_note_attachments
 npx supabase functions deploy merge_contacts
 npx supabase functions deploy extract-policy
 npx supabase functions deploy chat
+npx supabase functions deploy compare-estimates
 ```
 
 The `mcp` function is a Model Context Protocol server (OAuth-gated, SQL-validated) for external MCP clients — Claude Desktop and similar — that want to query the CRM directly.
 
 The `extract-policy` function powers the AI policy-PDF extractor in the Policy edit page.
+
+The `compare-estimates` function powers the AI estimate-comparison card on the Claim show page: it loads every estimate plus the policy and asks Claude to diff totals, identify missing line items, surface depreciation issues and policy red flags, and propose escalation moves.
 
 The `chat` function is the server-side agent backing the in-app chat widget. It runs an Anthropic agentic loop with a single `query_crm` tool (read-only SELECT, validated). Required secrets:
 
