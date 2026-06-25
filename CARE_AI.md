@@ -59,13 +59,13 @@ make start                # http://localhost:5173 (CRM), :54323 (Supabase studio
 ```
 
 1. Sign up at `http://localhost:5173` — first signup becomes the admin.
-2. Open `/integrations`. Everything will be red except Anthropic and Cron. That's expected for first run.
-3. Add an `ANTHROPIC_API_KEY` to your local Supabase function env (`supabase/functions/.env` or via `npx supabase secrets set --env-file`) to light up the AI features.
-4. Create a Carrier, then a Contact, then a Policy on that contact, then a Claim — exercising the basics.
-5. On the Claim, open the **Storm verification** card → Manual → log a fake hail event. See the green pill appear.
-6. On the Claim, open the **AI estimate comparison** card → won't have anything to compare yet but the UI proves Claude is reachable.
-7. Open `/patterns`. With one claim it's mostly empty; once you have a settled claim it lights up.
-8. Open `/briefing` → Generate. You'll get a tight markdown briefing about whatever's in the test data.
+2. **Seed realistic test data** in another shell: `make seed-care-ai` — drops 6 carriers, ~21 adjusters, 30 FL insureds, 30 policies, ~50 claims with mixed statuses, carrier + PA estimates, settlements with carrier-specific patterns (Citizens settles fast with high attorney involvement; State Farm appraisal-heavy; Heritage high denial), and storm verifications for hail/wind claims. Safe to re-run — it wipes prior `seed:%` rows first.
+3. Open `/integrations`. Everything will be red except Anthropic-status and Cron. That's expected for first run.
+4. Add `ANTHROPIC_API_KEY` to `supabase/functions/.env` (`echo "ANTHROPIC_API_KEY=sk-ant-..." >> supabase/functions/.env`) and run `npx supabase functions serve --env-file supabase/functions/.env` to light up every AI feature.
+5. Open `/patterns` — Citizens / State Farm / Heritage etc. should each show a distinct method-mix bar and attorney %. That's the seed working.
+6. Open `/briefing` → Generate today's briefing. With seeded stale claims and carrier escalations, you'll get a real one.
+7. Open any seeded **Claim** → poke the **AI estimate comparison** (the seed gives most claims both a carrier and a PA estimate), the **Storm verification** card (already populated for hail claims), and the **State law cheat sheet** (FL drafts visible with "Show drafts too").
+8. Test the **chat agent**: floating gold circle, bottom right. Ask things like *"which carriers escalate most often?"* or *"show me stale claims with State Farm"*. It runs real SELECTs against the seed data.
 
 ## Going live — order of operations
 

@@ -59,7 +59,7 @@ Public adjusters, intake staff, and admins. Ground every answer in the firm's CR
 
 # CRM schema (read via query_crm)
 You have read-only SQL access to these public tables. Column names are EXACT — do not guess.
-- contacts(id, first_name, last_name, email, phone_1_number, phone_2_number, company_id, sales_id, status, last_seen)
+- contacts(id, first_name, last_name, email_jsonb, phone_jsonb, company_id, sales_id, status, last_seen) — email_jsonb is a jsonb array like [{"email":"x@y.com","type":"Personal"}]; query with jsonb_path_query_array(email_jsonb, '$[*].email') or use the contacts_summary view's email_fts column for ILIKE searches.
 - companies(id, name, sector, size, sales_id)
 - carriers(id, name, naic_code, default_state, notes)
 - carrier_adjusters(id, carrier_id, first_name, last_name, email, phone, license_number, license_state, role, notes)

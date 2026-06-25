@@ -28,6 +28,18 @@ supabase-migrate-database: ## apply the migrations to the database
 supabase-reset-database: ## reset (and clear!) the database
 	npx supabase db reset
 
+seed-care-ai: ## seed CARE AI test data (6 carriers, 30 contacts, ~50 claims, settlements). Sign up at least once first.
+	@echo "→ Seeding CARE AI test data into local Supabase..."
+	@PSQL_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"; \
+	  if command -v psql >/dev/null 2>&1; then \
+	    psql "$$PSQL_URL" -v ON_ERROR_STOP=1 -f supabase/seed-care-ai.sql; \
+	  else \
+	    echo "psql not installed; falling back to docker exec..."; \
+	    docker exec -i $$(docker ps -qf "name=supabase_db") \
+	      psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/seed-care-ai.sql; \
+	  fi
+	@echo "→ Done. Open /patterns and /briefing to see the seeded data in action."
+
 start-app: ## start the app locally
 	npm run dev
 
