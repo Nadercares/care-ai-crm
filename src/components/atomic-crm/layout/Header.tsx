@@ -23,6 +23,12 @@ const Header = () => {
     currentPath = "/companies";
   } else if (matchPath("/deals/*", location.pathname)) {
     currentPath = "/deals";
+  } else if (matchPath("/claims/*", location.pathname)) {
+    currentPath = "/claims";
+  } else if (matchPath("/policies/*", location.pathname)) {
+    currentPath = "/policies";
+  } else if (matchPath("/carriers/*", location.pathname)) {
+    currentPath = "/carriers";
   } else {
     currentPath = false;
   }
@@ -76,6 +82,49 @@ const Header = () => {
                     })}
                     to="/deals"
                     isActive={currentPath === "/deals"}
+                  />
+                  <NavigationTab
+                    label={translate("resources.claims.name", {
+                      smart_count: 2,
+                    })}
+                    to="/claims"
+                    isActive={currentPath === "/claims"}
+                  />
+                  <NavigationTab
+                    label={translate("resources.policies.name", {
+                      smart_count: 2,
+                    })}
+                    to="/policies"
+                    isActive={currentPath === "/policies"}
+                  />
+                  <NavigationTab
+                    label={translate("resources.carriers.name", {
+                      smart_count: 2,
+                    })}
+                    to="/carriers"
+                    isActive={currentPath === "/carriers"}
+                  />
+                  <NavigationTab
+                    label={translate("resources.email_triage.name", {
+                      smart_count: 2,
+                    })}
+                    to="/email_triage"
+                    isActive={currentPath === "/email_triage"}
+                  />
+                  <NavigationTab
+                    label={translate("crm.patterns.nav")}
+                    to="/patterns"
+                    isActive={currentPath === "/patterns"}
+                  />
+                  <NavigationTab
+                    label={translate("crm.briefing.nav")}
+                    to="/briefing"
+                    isActive={currentPath === "/briefing"}
+                  />
+                  <NavigationTab
+                    label={translate("crm.integrations.nav")}
+                    to="/integrations"
+                    isActive={currentPath === "/integrations"}
                   />
                 </nav>
               </div>

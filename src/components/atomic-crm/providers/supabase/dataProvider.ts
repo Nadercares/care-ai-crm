@@ -353,6 +353,65 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       return applyFullTextSearch(["name", "category", "description"])(params);
     },
   },
+  {
+    resource: "claims",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch([
+        "claim_number",
+        "internal_claim_number",
+        "type_of_loss",
+        "cause_of_loss",
+        "description",
+        "loss_location_city",
+      ])(params);
+    },
+  },
+  {
+    resource: "claims_summary",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch([
+        "claim_number",
+        "internal_claim_number",
+        "insured_first_name",
+        "insured_last_name",
+        "carrier_name",
+        "type_of_loss",
+        "loss_location_city",
+      ])(params);
+    },
+  },
+  {
+    resource: "policies",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch([
+        "policy_number",
+        "policy_type",
+        "state_abbr",
+      ])(params);
+    },
+  },
+  {
+    resource: "carriers",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch([
+        "name",
+        "naic_code",
+        "claims_email",
+        "claims_phone",
+      ])(params);
+    },
+  },
+  {
+    resource: "carrier_adjusters",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch([
+        "first_name",
+        "last_name",
+        "license_number",
+        "email",
+      ])(params);
+    },
+  },
 ];
 
 export const getDataProvider = () => {

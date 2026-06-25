@@ -20,6 +20,14 @@ import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
+import claims from "../claims";
+import policies from "../policies";
+import carriers from "../carriers";
+import carrierAdjusters from "../carrier_adjusters";
+import emailTriage from "../email-triage";
+import { PatternsPage } from "../patterns/PatternsPage";
+import { BriefingPage } from "../briefing/BriefingPage";
+import { IntegrationsPage } from "../integrations/IntegrationsPage";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
@@ -262,10 +270,22 @@ const DesktopAdmin = (
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
+        <Route path={PatternsPage.path} element={<PatternsPage />} />
+        <Route path={BriefingPage.path} element={<BriefingPage />} />
+        <Route path={IntegrationsPage.path} element={<IntegrationsPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
       <Resource name="companies" {...companies} />
+      <Resource name="claims" {...claims} />
+      <Resource name="claims_summary" />
+      <Resource name="policies" {...policies} />
+      <Resource name="carriers" {...carriers} />
+      <Resource name="carrier_adjusters" {...carrierAdjusters} />
+      <Resource name="email_triage" {...emailTriage} />
+      <Resource name="estimates" />
+      <Resource name="estimate_line_items" />
+      <Resource name="settlements" />
       <Resource name="contact_notes" />
       <Resource name="deal_notes" />
       <Resource name="tasks" />
