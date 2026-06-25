@@ -1,5 +1,7 @@
 # Atomic CRM
 
+> 🏛️ **This fork ships CARE AI CRM** — a public-adjusting workspace built on top of Atomic CRM. See [**CARE_AI.md**](./CARE_AI.md) for the value catalog, first-10-minutes guide, integration setup order, and what's still gappy. Full setup is in [`doc/DEPLOYMENT_AND_REMOTE_ACCESS.md`](./doc/DEPLOYMENT_AND_REMOTE_ACCESS.md). This README continues as upstream Atomic CRM documentation.
+
 A full-featured CRM built with React, shadcn-admin-kit, and Supabase.
 
 <https://github.com/user-attachments/assets/0d7554b5-49ef-41c6-bcc9-a76214fc5c99>
