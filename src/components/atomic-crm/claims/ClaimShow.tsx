@@ -6,6 +6,7 @@ import { ReferenceField } from "@/components/admin/reference-field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { ClaimStatusBadge } from "./ClaimStatusBadge";
+import { ClaimCalendarCard } from "./ClaimCalendarCard";
 import { EstimateComparator } from "./EstimateComparator";
 import { StateLawChecklist } from "./StateLawChecklist";
 
@@ -81,6 +82,10 @@ export function ClaimShow() {
             </SimpleShowLayout>
           </CardContent>
         </Card>
+
+        <div className="lg:col-span-3">
+          <ClaimCalendarCard />
+        </div>
 
         <div className="lg:col-span-3">
           <EstimateComparator />

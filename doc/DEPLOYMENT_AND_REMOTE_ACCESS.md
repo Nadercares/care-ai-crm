@@ -340,6 +340,8 @@ npx supabase functions deploy gmail-oauth-callback
 npx supabase functions deploy gmail-triage
 npx supabase functions deploy draft-email-reply        # AI reply drafter
 npx supabase functions deploy gmail-triage-runner      # cron entrypoint
+npx supabase functions deploy schedule-inspection      # Phase 10: create calendar events
+npx supabase functions deploy calendar-sync            # Phase 10: pull + AI-classify existing events
 ```
 
 ### How staff connect
@@ -402,6 +404,66 @@ select cron.schedule(
 ```
 
 If you don't want pg_cron, point any external scheduler (Railway cron, GitHub Actions schedule, Vercel cron, cron-job.org) at the same URL with the same header.
+
+---
+
+## 9c. Google Calendar (Phase 10)
+
+Same Google account, same refresh token, additional scope: `calendar.events`. The frontend OAuth URL already requests it as part of the Phase 9 connect flow — anyone who connected before Phase 10 must click **Reconnect** in the Gmail card so Google grants the new scope. The `schedule-inspection` and `calendar-sync` functions both check the stored scopes and return a clear "reconnect required" error if it's missing.
+
+### Schedule an inspection
+
+On any Claim show page → **Calendar** card → **Schedule** button.
+
+The dialog lets staff pick kind (inspection / re-inspection / appraisal / mediation / carrier_meeting / insured_meeting / deadline / other), datetime, duration, extra attendees, an optional location override, and free-text notes.
+
+When submitted:
+
+1. The function loads the claim, carrier, carrier_adjuster, contact, and policy.
+2. It refreshes the Google access token (via the stored refresh token) and POSTs an event to `calendars/primary/events?sendUpdates=all` with:
+   - Summary: `"<Kind> — <Carrier> claim #<number>"`
+   - Location: loss address (or override)
+   - Description: a structured block with claim ref, DOL, loss type, status, carrier adjuster name + license + contact, insured contact, policy type + deductibles + summary, then any staff notes
+   - Attendees: the staffer's email + insured email + carrier adjuster email + any extras (deduped, lowercased)
+   - `extendedProperties.private.care_ai_claim_id` and `care_ai_kind` so `calendar-sync` can recognise our own events later
+3. It upserts a `calendar_events` row linking `google_event_id → claim_id`.
+4. Returns the `html_link` to open in Google Calendar.
+
+Google sends the actual email invitations because of `sendUpdates=all`.
+
+### Sync calendar (manual or scheduled)
+
+The Calendar card's **Sync** button calls `/functions/v1/calendar-sync`:
+
+1. Pulls upcoming events (default next 60 days, max 250).
+2. For events that we already created (recognised by the extended property we set above), copies the basics.
+3. For everything else, sends a compact JSON of (summary, description, location, start, attendees) along with a lookup pack of recent claims / contacts / carrier_adjusters to Claude, which forces a single `save_calendar_matches` tool call: kind + nullable claim_id / contact_id / carrier_adjuster_id + ai_confidence + ai_rationale.
+4. Upserts everything to `calendar_events` keyed on `(sales_id, google_event_id)`.
+
+This is how a staffer's manually-created Google Calendar event ("Smith inspection 3pm Friday") gets linked back to the right claim without anyone retyping anything.
+
+To run sync on a schedule, add another `cron.schedule` block alongside the Gmail one in the SQL editor — same pattern, different URL:
+
+```sql
+select cron.schedule(
+  'calendar-sync-every-hour',
+  '0 * * * *',
+  $$
+  select net.http_post(
+    url := 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/calendar-sync',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      -- calendar-sync needs a per-user JWT; schedule on a service-account
+      -- pattern or wrap calendar-sync in a runner (see Gmail runner pattern).
+      'Authorization', 'Bearer <SERVICE-OR-USER-JWT>'
+    ),
+    body := jsonb_build_object('lookahead_days', 60)
+  );
+  $$
+);
+```
+
+Calendar-sync doesn't yet have a runner equivalent to `gmail-triage-runner`. That's a next-session add — same shape, iterates connections, dispatches with `X-Cron-Runner`.
 
 ### Scope limits and known gaps
 

@@ -69,6 +69,7 @@ You have read-only SQL access to these public tables. Column names are EXACT —
 - estimate_line_items(id, estimate_id, room, category, code, description, quantity, unit, unit_price, rcv, acv, depreciation, age_life, condition, notes)
 - settlements(id, claim_id, settled_at, settlement_amount, supplemental_amount, depreciation_recoverable, deductible_amount, net_to_insured, method, pa_involved, attorney_involved, attorney_firm, attorney_name, mediator_appraiser_name, mediator_appraiser_role, days_to_settle, our_role, notes)
 - state_law_summaries(id, state_abbr, topic, title, summary, source_citation, last_reviewed_at, reviewed_by_sales_id, status, notes) — firm's curated per-(state, topic) compliance KB. status = draft | active | retired.
+- calendar_events(id, sales_id, google_event_id, summary, location, starts_at, ends_at, kind, claim_id, contact_id, carrier_adjuster_id, status, source, ai_confidence, ai_rationale) — Google Calendar projection. kind ∈ inspection|reinspection|appraisal|mediation|carrier_meeting|insured_meeting|deadline|other. source = created (we POSTed via schedule-inspection) | synced (pulled via calendar-sync).
 - claims_summary (view: claims joined to contact, carrier, policy, carrier_adjuster — handy for list-style answers)
 
 Notes:

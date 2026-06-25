@@ -510,3 +510,46 @@ export type EmailTriage = {
   status: EmailTriageStatus | string;
   created_at?: string;
 } & Pick<RaRecord, "id">;
+
+// --- Google Calendar integration ---
+
+export type CalendarEventKind =
+  | "inspection"
+  | "reinspection"
+  | "appraisal"
+  | "mediation"
+  | "carrier_meeting"
+  | "insured_meeting"
+  | "deadline"
+  | "other";
+
+export type CalendarEventStatus =
+  | "scheduled"
+  | "completed"
+  | "cancelled"
+  | "no_show";
+
+export type CalendarEvent = {
+  sales_id: Identifier;
+  google_event_id: string;
+  google_calendar_id: string;
+  ical_uid?: string | null;
+  html_link?: string | null;
+  summary?: string | null;
+  description?: string | null;
+  location?: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  all_day?: boolean;
+  kind?: CalendarEventKind | string | null;
+  claim_id?: Identifier | null;
+  contact_id?: Identifier | null;
+  carrier_adjuster_id?: Identifier | null;
+  status: CalendarEventStatus | string;
+  source: "created" | "synced";
+  ai_confidence?: number | null;
+  ai_rationale?: string | null;
+  notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;

@@ -16,11 +16,15 @@ interface Connection {
   last_sync_error: string | null;
 }
 
-// gmail.modify is required for users.drafts.create (Phase 9 reply
-// drafting). It supersedes gmail.readonly. Users who connected with
-// the old read-only scope must reconnect to get draft saving.
+// Same Google account powers Gmail (Phase 9) AND Calendar (Phase 10).
+// One refresh token, one consent screen. Scopes:
+//   gmail.modify        — read + drafts.create (Phase 9)
+//   calendar.events     — create + list + update calendar events
+//                          (Phase 10 schedule-inspection / sync)
+//   userinfo.email      — capture the connected Google address
 const GMAIL_SCOPES = [
   "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/userinfo.email",
 ].join(" ");
 

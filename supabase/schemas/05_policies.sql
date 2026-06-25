@@ -99,3 +99,9 @@ create policy "Email triage: authenticated read" on public.email_triage for sele
 create policy "Email triage: owner insert" on public.email_triage for insert to authenticated with check (sales_id in (select id from public.sales where user_id = auth.uid()));
 create policy "Email triage: owner update" on public.email_triage for update to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid())) with check (sales_id in (select id from public.sales where user_id = auth.uid()));
 create policy "Email triage: owner delete" on public.email_triage for delete to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid()));
+
+alter table public.calendar_events enable row level security;
+create policy "Calendar events: authenticated read" on public.calendar_events for select to authenticated using (true);
+create policy "Calendar events: owner insert" on public.calendar_events for insert to authenticated with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Calendar events: owner update" on public.calendar_events for update to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid())) with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Calendar events: owner delete" on public.calendar_events for delete to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid()));
