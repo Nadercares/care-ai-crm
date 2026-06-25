@@ -344,6 +344,8 @@ npx supabase functions deploy schedule-inspection      # Phase 10: create calend
 npx supabase functions deploy calendar-sync            # Phase 10: pull + AI-classify existing events
 npx supabase functions deploy dropbox-oauth-callback   # Phase 11: Dropbox OAuth
 npx supabase functions deploy dropbox-list             # Phase 11: live folder listing
+npx supabase functions deploy daily-briefing           # Phase 13: morning briefing
+npx supabase functions deploy daily-briefing-runner    # Phase 13: cron entrypoint
 ```
 
 ### How staff connect
@@ -524,6 +526,62 @@ npx supabase functions deploy dropbox-oauth-callback dropbox-list
 - **No caching.** Every page open triggers a Dropbox API call (one `/2/files/list_folder`). Dropbox's free-tier limit is generous enough for a small firm, but a busy desk should add a 60-second client-side cache.
 - **One folder per claim.** Subfolders work — click into them through the Dropbox link — but only the top-level folder lives in `claim_dropbox_folders`.
 - **Refresh tokens stored in plaintext, RLS-protected.** Same trade-off as Gmail.
+
+---
+
+## 9e. Daily morning briefing (Phase 13)
+
+A coordinated agent that pulls together everything the firm has captured — today's calendar, last-24h urgent inbox, claims that have gone quiet, carrier escalation shifts — into a 300-word markdown briefing each morning. This is the "agent that handles office tasks" piece: it doesn't add any new integration, it composes the ones you already have.
+
+### What it reads
+
+For one staffer, in parallel:
+
+- **Today's calendar** — every `calendar_events` row with `starts_at` between local midnight and 11:59pm, not cancelled.
+- **Urgent inbox last 24h** — `email_triage` rows where `urgency in ('high','medium')`, `status='new'`, received in the last 24 hours.
+- **Stale claims** — `claims_summary` rows owned by the staffer (`sales_id` OR `assigned_pa_sales_id`), in any active status (intake → litigation), with no `updated_at` for ≥14 days.
+- **Carrier pattern shifts** — top carriers by `count_escalated` so the model can comment on patterns worth acting on.
+
+### What it writes
+
+Claude is forced to follow a fixed section layout: **Today**, **Urgent inbox**, **Stale claims**, **Carrier pattern shifts**, **Suggested first moves**. Sections with no input are omitted (not padded with "Nothing today."). Hard rules in the system prompt: no legal advice, no statute citations, no binding promises, under 350 words, leading with the staffer's first name.
+
+### Where it lands
+
+Three places:
+
+1. **Frontend at `/briefing`** — Generate / Regenerate button, count chips (Today / Urgent emails / Stale claims / Carriers), markdown render. Click **Save to Gmail drafts** to also put it in Gmail.
+2. **Gmail draft** — addressed to the staffer's own email so they can read it on phone before reaching a laptop. NEVER sent; only drafted.
+3. **Scheduled** — `daily-briefing-runner` is an X-CRON-Secret authed endpoint that iterates every `gmail_connections` row and dispatches the user-facing function with `save_to_gmail: true` and the cron auth path.
+
+### Suggested pg_cron block (Supabase SQL editor)
+
+```sql
+-- runs at 7:00am UTC every weekday; adjust for your local timezone
+select cron.schedule(
+  'daily-briefing-7am-weekdays',
+  '0 7 * * 1-5',
+  $$
+  select net.http_post(
+    url := 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/daily-briefing-runner',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'X-CRON-Secret', current_setting('app.cron_secret')
+    ),
+    body := jsonb_build_object('save_to_gmail', true)
+  );
+  $$
+);
+```
+
+### Scope limits and known gaps
+
+- **No history.** Each briefing is generated fresh. If you want to look at yesterday's briefing, open the Gmail draft. A `briefings` history table is a future add.
+- **Single sales_id per call.** The runner loops; no batched LLM call. Fine at firm scale; not at hundreds-of-users scale.
+- **`gmail.modify` scope required** to save briefings to Gmail drafts. Without it, the briefing still generates and renders at /briefing, but the save step errors with a clear "reconnect with gmail.modify" message.
+- **Decision support, not authority.** Same disclaimer as everywhere else — staff reviews before relying.
+
+---
 
 ### Scope limits and known gaps (Gmail)
 
