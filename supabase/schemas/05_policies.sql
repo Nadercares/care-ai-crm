@@ -119,3 +119,9 @@ create policy "Claim dropbox folders: authenticated write" on public.claim_dropb
 alter table public.claim_storm_verifications enable row level security;
 create policy "Storm verifications: authenticated read" on public.claim_storm_verifications for select to authenticated using (true);
 create policy "Storm verifications: authenticated write" on public.claim_storm_verifications for all to authenticated using (true) with check (true);
+
+alter table public.briefings enable row level security;
+create policy "Briefings: authenticated read" on public.briefings for select to authenticated using (true);
+create policy "Briefings: owner insert" on public.briefings for insert to authenticated with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Briefings: owner update" on public.briefings for update to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid())) with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Briefings: owner delete" on public.briefings for delete to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid()));

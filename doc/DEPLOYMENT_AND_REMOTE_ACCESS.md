@@ -347,7 +347,14 @@ npx supabase functions deploy dropbox-list             # Phase 11: live folder l
 npx supabase functions deploy daily-briefing           # Phase 13: morning briefing
 npx supabase functions deploy daily-briefing-runner    # Phase 13: cron entrypoint
 npx supabase functions deploy verify-storm             # Phase 14: HailTrace / storm verification
+npx supabase functions deploy system-health            # Phase 15: integrations status read
 ```
+
+### Phase 15: Integrations page
+
+A consolidated **/integrations** page reads `system-health` (server-side env booleans only — never values) plus the per-user `gmail_connections` and `dropbox_connections` rows and renders one card per integration: Anthropic, Gmail, Calendar, Dropbox, HailTrace, Cron, State-law KB. Each card shows status (green / amber / red), a one-line description, and inline setup hints when something's missing. Use it as the first stop after deploying — anything red is missing a secret; anything amber needs a per-user click (e.g. reconnect Gmail to grant `calendar.events`).
+
+The page also includes Phase 15a — briefing history: every generated briefing now persists to `public.briefings` (RLS-scoped: anyone reads, owner writes), and `/briefing` shows the last 14 days as collapsible entries with summary counts.
 
 ### How staff connect
 

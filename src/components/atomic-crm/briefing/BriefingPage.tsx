@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNotify } from "ra-core";
 import {
   Sparkles,
@@ -8,11 +8,11 @@ import {
   Inbox,
   AlertTriangle,
   TrendingUp,
+  History,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { Markdown } from "../misc/Markdown";
@@ -32,11 +32,51 @@ interface BriefingResult {
   gmail_save_error: string | null;
 }
 
+interface HistoryRow {
+  id: number;
+  generated_at: string;
+  content_markdown: string;
+  today_events_count: number;
+  urgent_emails_count: number;
+  stale_claims_count: number;
+  carriers_count: number;
+}
+
 function BriefingPage() {
   const notify = useNotify();
   const [briefing, setBriefing] = useState<BriefingResult | null>(null);
   const [generating, setGenerating] = useState(false);
   const [savingGmail, setSavingGmail] = useState(false);
+  const [history, setHistory] = useState<HistoryRow[]>([]);
+  const [openHistoryId, setOpenHistoryId] = useState<number | null>(null);
+
+  const loadHistory = useCallback(async () => {
+    const supabase = getSupabaseClient();
+    const since = new Date(Date.now() - 14 * 86_400_000).toISOString();
+    const { data: user } = await supabase.auth.getUser();
+    const authUserId = user?.user?.id;
+    if (!authUserId) return;
+    const { data: sales } = await supabase
+      .from("sales")
+      .select("id")
+      .eq("user_id", authUserId)
+      .maybeSingle();
+    if (!sales) return;
+    const { data } = await supabase
+      .from("briefings")
+      .select(
+        "id, generated_at, content_markdown, today_events_count, urgent_emails_count, stale_claims_count, carriers_count",
+      )
+      .eq("sales_id", sales.id)
+      .gte("generated_at", since)
+      .order("generated_at", { ascending: false })
+      .limit(20);
+    setHistory(data ?? []);
+  }, []);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
 
   const generate = async (saveToGmail = false) => {
     if (saveToGmail) {
@@ -63,6 +103,7 @@ function BriefingPage() {
         throw new Error(payload?.error || `HTTP ${res.status}`);
       }
       setBriefing(payload as BriefingResult);
+      void loadHistory();
       if (saveToGmail) {
         if (payload.gmail_save_error) {
           notify(
@@ -187,6 +228,62 @@ function BriefingPage() {
             authoritative for legal or carrier-binding statements.
           </p>
         </>
+      )}
+
+      {history.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <History className="h-4 w-4" />
+              History (last 14 days)
+              <span className="text-xs text-muted-foreground font-normal">
+                {history.length} briefing{history.length === 1 ? "" : "s"}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {history.map((h) => (
+              <details
+                key={h.id}
+                open={openHistoryId === h.id}
+                onToggle={(e) =>
+                  setOpenHistoryId(
+                    (e.target as HTMLDetailsElement).open ? h.id : null,
+                  )
+                }
+                className="rounded border border-border/40 px-2 py-1"
+              >
+                <summary className="cursor-pointer select-none text-xs flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold">
+                    {new Date(h.generated_at).toLocaleDateString(undefined, {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {new Date(h.generated_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                  <span className="text-muted-foreground">
+                    · {h.today_events_count} events
+                  </span>
+                  <span className="text-muted-foreground">
+                    · {h.urgent_emails_count} urgent
+                  </span>
+                  <span className="text-muted-foreground">
+                    · {h.stale_claims_count} stale
+                  </span>
+                </summary>
+                <div className="mt-2">
+                  <Markdown className="text-sm">{h.content_markdown}</Markdown>
+                </div>
+              </details>
+            ))}
+          </CardContent>
+        </Card>
       )}
     </div>
   );

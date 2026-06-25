@@ -265,8 +265,31 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Persist to history (best-effort; failures here don't fail the call).
+  let briefingId: number | null = null;
+  try {
+    const { data: inserted } = await supabaseAdmin
+      .from("briefings")
+      .insert({
+        sales_id: salesId,
+        content_markdown: markdown,
+        today_events_count: counts.today_events,
+        urgent_emails_count: counts.urgent_emails,
+        stale_claims_count: counts.stale_claims,
+        carriers_count: counts.carriers,
+        gmail_draft_id: gmailDraftId,
+        model: ANTHROPIC_MODEL,
+      })
+      .select("id")
+      .single();
+    briefingId = inserted?.id ?? null;
+  } catch (err) {
+    console.error("briefing persist failed", err);
+  }
+
   return json({
     sales_id: salesId,
+    briefing_id: briefingId,
     generated_at: new Date().toISOString(),
     markdown,
     counts,

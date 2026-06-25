@@ -16,6 +16,7 @@ const overrides: Record<string, string> = {
   "resources.email_triage.forcedCaseName": "Email",
   "crm.patterns.nav": "Patterns",
   "crm.briefing.nav": "Briefing",
+  "crm.integrations.nav": "Integrations",
 };
 
 export const careI18nProvider = {
