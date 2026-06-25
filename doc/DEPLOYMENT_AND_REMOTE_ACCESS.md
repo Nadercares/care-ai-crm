@@ -342,6 +342,8 @@ npx supabase functions deploy draft-email-reply        # AI reply drafter
 npx supabase functions deploy gmail-triage-runner      # cron entrypoint
 npx supabase functions deploy schedule-inspection      # Phase 10: create calendar events
 npx supabase functions deploy calendar-sync            # Phase 10: pull + AI-classify existing events
+npx supabase functions deploy dropbox-oauth-callback   # Phase 11: Dropbox OAuth
+npx supabase functions deploy dropbox-list             # Phase 11: live folder listing
 ```
 
 ### How staff connect
@@ -465,7 +467,65 @@ select cron.schedule(
 
 Calendar-sync doesn't yet have a runner equivalent to `gmail-triage-runner`. That's a next-session add — same shape, iterates connections, dispatches with `X-Cron-Runner`.
 
+---
+
+## 9d. Dropbox integration (Phase 11)
+
+Per-user Dropbox OAuth + per-claim folder linkage. Files are NOT cached in the CRM — `dropbox-list` calls the Dropbox API live every time a Claim page is opened. This keeps the CRM out of the file-sync business and means the Dropbox folder remains the single source of truth.
+
+### One-time Dropbox app config
+
+1. Go to **dropbox.com/developers/apps** → **Create app**:
+   - API: **Scoped access**
+   - Access type: **Full Dropbox** (or App folder if you keep a dedicated firm folder)
+   - Name: `CARE AI CRM`
+2. On the app's settings page:
+   - **Permissions** tab → enable `files.metadata.read` and `files.content.read`. Submit.
+   - **Settings** tab → add redirect URI (EXACT match required):
+     `https://<your-supabase-project-ref>.supabase.co/functions/v1/dropbox-oauth-callback`
+   - Note the **App key** (client id) and **App secret** (client secret).
+
+### Supabase function secrets
+
+```bash
+npx supabase secrets set DROPBOX_CLIENT_ID=<app-key>
+npx supabase secrets set DROPBOX_CLIENT_SECRET=<app-secret>
+npx supabase secrets set DROPBOX_OAUTH_REDIRECT_URI=https://<your-project-ref>.supabase.co/functions/v1/dropbox-oauth-callback
+# APP_URL is already set from Phase 9; reused here.
+```
+
+### Frontend env var (publishable)
+
+```bash
+VITE_DROPBOX_CLIENT_ID=<app-key>
+```
+
+The App key (client id) is safe to expose in the browser; the App secret stays server-side in Supabase secrets only.
+
+### Deploy
+
+```bash
+npx supabase db push                          # creates dropbox_connections + claim_dropbox_folders
+npx supabase functions deploy dropbox-oauth-callback dropbox-list
+```
+
+### How staff use it
+
+1. Open any Claim show page → scroll to the **Dropbox** card.
+2. If they haven't connected yet: click **Connect Dropbox** → Dropbox consent screen → bounced back to the same claim page.
+3. Click **Set folder** → paste the absolute Dropbox folder path for this claim (e.g. `/Claims/Smith/2026`).
+4. The card now lists files in that folder with kind badges (Policy / Estimate / Report / Correspondence / Contract / Photo / Video / Document / etc.) inferred from the filename. Click any file to open it in Dropbox.
+5. Click **Refresh** to re-fetch (e.g. after dropping a new estimate PDF in).
+
 ### Scope limits and known gaps
+
+- **Read-only.** Scopes are `files.metadata.read` + `files.content.read`. No write / move / share-create. Staff still uploads in Dropbox itself.
+- **No AI file classification yet.** Kind badges come from filename heuristics (regex on extension + filename hints like `policy`, `xact`, `engineer`, `denial`). Next session: an `ai-classify-files` endpoint that batch-classifies ambiguous files with Claude.
+- **No caching.** Every page open triggers a Dropbox API call (one `/2/files/list_folder`). Dropbox's free-tier limit is generous enough for a small firm, but a busy desk should add a 60-second client-side cache.
+- **One folder per claim.** Subfolders work — click into them through the Dropbox link — but only the top-level folder lives in `claim_dropbox_folders`.
+- **Refresh tokens stored in plaintext, RLS-protected.** Same trade-off as Gmail.
+
+### Scope limits and known gaps (Gmail)
 
 - **Read + write scope.** With `gmail.modify` staff can have drafts saved to Gmail. The function NEVER calls `users.messages.send` — only `users.drafts.create`. Sending is always a human action in Gmail.
 - **Lookup pack is capped** at the 500 most recent carriers / contacts / carrier_adjusters and the 200 most recent claims. Larger firms need pagination or vector retrieval. Documented as a known limit.

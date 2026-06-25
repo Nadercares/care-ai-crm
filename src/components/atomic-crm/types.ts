@@ -529,6 +529,28 @@ export type CalendarEventStatus =
   | "cancelled"
   | "no_show";
 
+// --- Dropbox integration ---
+
+export type DropboxConnection = {
+  sales_id: Identifier;
+  dropbox_account_id?: string | null;
+  dropbox_email?: string | null;
+  access_token?: string | null;
+  access_token_expires_at?: string | null;
+  refresh_token: string;
+  scopes?: string[];
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;
+
+export type ClaimDropboxFolder = {
+  claim_id: Identifier;
+  folder_path: string;
+  configured_by_sales_id?: Identifier | null;
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;
+
 export type CalendarEvent = {
   sales_id: Identifier;
   google_event_id: string;

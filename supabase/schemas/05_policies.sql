@@ -105,3 +105,13 @@ create policy "Calendar events: authenticated read" on public.calendar_events fo
 create policy "Calendar events: owner insert" on public.calendar_events for insert to authenticated with check (sales_id in (select id from public.sales where user_id = auth.uid()));
 create policy "Calendar events: owner update" on public.calendar_events for update to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid())) with check (sales_id in (select id from public.sales where user_id = auth.uid()));
 create policy "Calendar events: owner delete" on public.calendar_events for delete to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid()));
+
+alter table public.dropbox_connections enable row level security;
+create policy "Dropbox connections: owner read" on public.dropbox_connections for select to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Dropbox connections: owner insert" on public.dropbox_connections for insert to authenticated with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Dropbox connections: owner update" on public.dropbox_connections for update to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid())) with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Dropbox connections: owner delete" on public.dropbox_connections for delete to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid()));
+
+alter table public.claim_dropbox_folders enable row level security;
+create policy "Claim dropbox folders: authenticated read" on public.claim_dropbox_folders for select to authenticated using (true);
+create policy "Claim dropbox folders: authenticated write" on public.claim_dropbox_folders for all to authenticated using (true) with check (true);
