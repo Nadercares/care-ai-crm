@@ -346,6 +346,7 @@ npx supabase functions deploy dropbox-oauth-callback   # Phase 11: Dropbox OAuth
 npx supabase functions deploy dropbox-list             # Phase 11: live folder listing
 npx supabase functions deploy daily-briefing           # Phase 13: morning briefing
 npx supabase functions deploy daily-briefing-runner    # Phase 13: cron entrypoint
+npx supabase functions deploy verify-storm             # Phase 14: HailTrace / storm verification
 ```
 
 ### How staff connect
@@ -526,6 +527,48 @@ npx supabase functions deploy dropbox-oauth-callback dropbox-list
 - **No caching.** Every page open triggers a Dropbox API call (one `/2/files/list_folder`). Dropbox's free-tier limit is generous enough for a small firm, but a busy desk should add a 60-second client-side cache.
 - **One folder per claim.** Subfolders work — click into them through the Dropbox link — but only the top-level folder lives in `claim_dropbox_folders`.
 - **Refresh tokens stored in plaintext, RLS-protected.** Same trade-off as Gmail.
+
+---
+
+## 9f. Storm verification — HailTrace and friends (Phase 14)
+
+For any wind / hail / tornado / hurricane claim, verifying a covered peril actually occurred at the loss address on the date of loss is the first thing every carrier scope argument hangs on. CARE AI keeps a structured record of every verification — automated (HailTrace API) and manual (meteorologist PDF, NOAA SPC printout, your own field observation) — in the same schema (`claim_storm_verifications`) so the chat agent and the briefing can answer "which open wind/hail claims still have NO storm verification on file" with one SELECT.
+
+### Claim show card
+
+Every claim has a **Storm verification** card with:
+
+- **Manual** button → dialog for source / event date / event type / hail size / wind speed / wind gust / distance from loss / confidence / report URL / notes. Works **today** with no third-party setup — this is how the firm logs a meteorologist PDF, a NOAA Storm Events archive entry, or a field observation.
+- **Verify (HailTrace)** button → calls the `verify-storm` edge function which sends the claim's address + a ±3 day window around the DOL to HailTrace, parses events out of the response, and stores them with `matches_loss_date` / `matches_loss_location` set when within tolerance.
+- A "wind/hail evidence on file" green badge once any qualifying event row exists. A check mark per row when the event date matches the DOL within 1 day or the distance is ≤ 1 mile.
+
+### Getting HailTrace API access
+
+HailTrace's External API isn't on a self-serve developer dashboard — access is gated by their team:
+
+1. Email **`developers@hailtrace.com`** explaining you operate a public-adjusting firm and want External API access for storm verification inside your CRM. Mention you've used HailTrace (the firm already has an account, per the integration brief).
+2. They'll set up usage-based subscription billing and issue you an API key (per the OneClick Code / SPOTIO / Knockbase precedents).
+3. They'll confirm the exact endpoint URL and authentication header. The function is built to be configurable — you don't change code, you set secrets.
+
+### Supabase function secrets (set after you have credentials)
+
+```bash
+npx supabase secrets set HAILTRACE_API_KEY=<key-from-developers@hailtrace.com>
+npx supabase secrets set HAILTRACE_API_BASE=https://fa7c838b-developers.hailtrace.com/api/external
+npx supabase secrets set HAILTRACE_VERIFY_PATH=<endpoint-path-they-give-you>
+# Optional override (defaults to x-api-key):
+npx supabase secrets set HAILTRACE_AUTH_HEADER=x-api-key
+```
+
+Until those are set, the **Verify (HailTrace)** button returns a clear 503 "HailTrace is not configured" message and the UI nudges staff to use **Manual** instead. **The manual workflow ships today and works without any third-party setup.**
+
+### How the function handles HailTrace's response
+
+The endpoint shape isn't publicly documented, so `verify-storm` parses the response defensively. It looks for a few common envelope keys (`events`, `results`, `data`, `hail_events`, `wind_events`) and for each event tries multiple field-name aliases (`event_date | date | occurred_at`, `hail_size_inches | hail_size | max_hail_size_in`, `wind_speed_mph | wind_speed`, etc.). The raw response is always stored in `raw_response` jsonb for audit and for diagnosing mapping gaps. If the field names HailTrace returns don't match any alias, adjust `normalizeEvent()` in the function source — it's one place to edit.
+
+### Other sources
+
+The schema accepts these `source` values: `hailtrace`, `corelogic`, `verisk_pcs`, `noaa_spc`, `manual`, `other`. The manual dialog accepts all of them as a dropdown — log everything in one place regardless of provenance.
 
 ---
 

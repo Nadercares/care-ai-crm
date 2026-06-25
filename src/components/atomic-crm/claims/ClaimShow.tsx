@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClaimStatusBadge } from "./ClaimStatusBadge";
 import { ClaimCalendarCard } from "./ClaimCalendarCard";
 import { ClaimDropboxCard } from "./ClaimDropboxCard";
+import { ClaimStormCard } from "./ClaimStormCard";
 import { EstimateComparator } from "./EstimateComparator";
 import { StateLawChecklist } from "./StateLawChecklist";
 
@@ -90,6 +91,10 @@ export function ClaimShow() {
 
         <div className="lg:col-span-3">
           <ClaimDropboxCard />
+        </div>
+
+        <div className="lg:col-span-3">
+          <ClaimStormCard />
         </div>
 
         <div className="lg:col-span-3">

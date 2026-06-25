@@ -115,3 +115,7 @@ create policy "Dropbox connections: owner delete" on public.dropbox_connections 
 alter table public.claim_dropbox_folders enable row level security;
 create policy "Claim dropbox folders: authenticated read" on public.claim_dropbox_folders for select to authenticated using (true);
 create policy "Claim dropbox folders: authenticated write" on public.claim_dropbox_folders for all to authenticated using (true) with check (true);
+
+alter table public.claim_storm_verifications enable row level security;
+create policy "Storm verifications: authenticated read" on public.claim_storm_verifications for select to authenticated using (true);
+create policy "Storm verifications: authenticated write" on public.claim_storm_verifications for all to authenticated using (true) with check (true);

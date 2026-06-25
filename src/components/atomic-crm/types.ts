@@ -551,6 +551,46 @@ export type ClaimDropboxFolder = {
   updated_at?: string;
 } & Pick<RaRecord, "id">;
 
+// --- Storm verification ---
+
+export type StormSource =
+  | "hailtrace"
+  | "corelogic"
+  | "verisk_pcs"
+  | "noaa_spc"
+  | "manual"
+  | "other";
+
+export type StormEventType =
+  | "hail"
+  | "wind"
+  | "tornado"
+  | "hurricane"
+  | "flood"
+  | "lightning"
+  | "other";
+
+export type ClaimStormVerification = {
+  claim_id: Identifier;
+  sales_id?: Identifier | null;
+  source: StormSource;
+  event_date?: string | null;
+  event_type?: StormEventType | null;
+  hail_size_inches?: number | null;
+  wind_speed_mph?: number | null;
+  wind_gust_mph?: number | null;
+  distance_miles?: number | null;
+  confidence?: "high" | "medium" | "low" | "unknown" | null;
+  report_url?: string | null;
+  report_pdf_path?: string | null;
+  raw_response?: unknown;
+  notes?: string | null;
+  matches_loss_date?: boolean | null;
+  matches_loss_location?: boolean | null;
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;
+
 export type CalendarEvent = {
   sales_id: Identifier;
   google_event_id: string;
