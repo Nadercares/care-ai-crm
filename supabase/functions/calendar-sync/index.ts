@@ -29,6 +29,7 @@ const PUBLISHABLE_KEY =
   Deno.env.get("SUPABASE_ANON_KEY") ??
   Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
   "";
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const REQUIRED_SCOPE = "https://www.googleapis.com/auth/calendar.events";
 
@@ -95,6 +96,7 @@ Matching cues:
 You MUST call save_calendar_matches exactly once.`;
 
 interface Body {
+  sales_id?: number;
   lookahead_days?: number;
   max_events?: number;
 }
@@ -124,25 +126,37 @@ Deno.serve(async (req) => {
   const lookaheadDays = clamp(body.lookahead_days ?? 30, 1, 365);
   const maxEvents = clamp(body.max_events ?? 100, 1, 250);
 
-  // Caller → sales.
-  const userClient = createClient(SUPABASE_URL, PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${userJwt}` } },
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { data: userResult } = await userClient.auth.getUser();
-  const userId = userResult?.user?.id;
-  if (!userId) return json({ error: "Invalid auth token" }, 401);
-  const { data: sales } = await userClient
-    .from("sales")
-    .select("id")
-    .eq("user_id", userId)
-    .single();
-  if (!sales) return json({ error: "No sales row for caller" }, 404);
+  // Two auth paths (same as gmail-triage / daily-briefing).
+  const isCronRunner =
+    req.headers.get("x-cron-runner") === "true" &&
+    SERVICE_ROLE_KEY !== "" &&
+    userJwt === SERVICE_ROLE_KEY;
+
+  let salesId = body.sales_id;
+  if (isCronRunner) {
+    if (!salesId)
+      return json({ error: "Cron runner needs sales_id in body" }, 400);
+  } else {
+    const userClient = createClient(SUPABASE_URL, PUBLISHABLE_KEY, {
+      global: { headers: { Authorization: `Bearer ${userJwt}` } },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data: userResult } = await userClient.auth.getUser();
+    const userId = userResult?.user?.id;
+    if (!userId) return json({ error: "Invalid auth token" }, 401);
+    const { data: sales } = await userClient
+      .from("sales")
+      .select("id")
+      .eq("user_id", userId)
+      .single();
+    if (!sales) return json({ error: "No sales row for caller" }, 404);
+    salesId = sales.id;
+  }
 
   const { data: connection } = await supabaseAdmin
     .from("gmail_connections")
     .select("refresh_token, scopes")
-    .eq("sales_id", sales.id)
+    .eq("sales_id", salesId)
     .single();
   if (!connection) {
     return json(
@@ -291,7 +305,7 @@ Deno.serve(async (req) => {
   );
   const rows = [
     ...ourOwn.map((ev) => ({
-      sales_id: sales.id,
+      sales_id: salesId,
       google_event_id: ev.id,
       google_calendar_id: "primary",
       ical_uid: ev.iCalUID ?? null,
@@ -311,7 +325,7 @@ Deno.serve(async (req) => {
     ...needClassify.map((ev) => {
       const c = classifiedById.get(ev.id);
       return {
-        sales_id: sales.id,
+        sales_id: salesId,
         google_event_id: ev.id,
         google_calendar_id: "primary",
         ical_uid: ev.iCalUID ?? null,

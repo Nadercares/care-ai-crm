@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Settings,
   Box,
+  Sparkles,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +40,9 @@ interface FileEntry {
   modified_at: string | null;
   file_kind: string | null;
   preview_url: string;
+  ai_kind?: string;
+  ai_confidence?: number;
+  ai_rationale?: string;
 }
 
 const FILE_KIND_LABEL: Record<string, string> = {
@@ -88,6 +92,7 @@ export function ClaimDropboxCard() {
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [loadingConnection, setLoadingConnection] = useState(true);
   const [loadingFiles, setLoadingFiles] = useState(false);
+  const [classifying, setClassifying] = useState(false);
   const [showFolderDialog, setShowFolderDialog] = useState(false);
   const [folderInput, setFolderInput] = useState("");
 
@@ -173,6 +178,68 @@ export function ClaimDropboxCard() {
   useEffect(() => {
     void loadFiles();
   }, [loadFiles]);
+
+  const classifyWithAI = async () => {
+    if (!claimId || entries.length === 0) return;
+    setClassifying(true);
+    try {
+      const supabase = getSupabaseClient();
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      if (!token) throw new Error("Not signed in.");
+      const onlyFiles = entries.filter((e) => e.kind === "file");
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/classify-dropbox-files`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          claim_id: claimId,
+          files: onlyFiles.map((f) => ({
+            id: f.id,
+            name: f.name,
+            path: f.path,
+          })),
+        }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || `HTTP ${res.status}`);
+      const byId = new Map<
+        string,
+        { kind: string; confidence: number; rationale: string }
+      >();
+      for (const c of payload.classifications ?? []) {
+        byId.set(c.id, {
+          kind: c.kind,
+          confidence: c.confidence,
+          rationale: c.rationale,
+        });
+      }
+      setEntries((prev) =>
+        prev.map((e) => {
+          const m = byId.get(e.id);
+          if (!m) return e;
+          return {
+            ...e,
+            ai_kind: m.kind,
+            ai_confidence: m.confidence,
+            ai_rationale: m.rationale,
+          };
+        }),
+      );
+      notify(`AI re-classified ${payload.classified} file(s).`, {
+        type: "success",
+      });
+    } catch (err) {
+      notify(err instanceof Error ? err.message : String(err), {
+        type: "error",
+      });
+    } finally {
+      setClassifying(false);
+    }
+  };
 
   const startOauth = async () => {
     try {
@@ -279,6 +346,22 @@ export function ClaimDropboxCard() {
               Refresh
             </Button>
           )}
+          {connection && folderPath && entries.length > 0 && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => void classifyWithAI()}
+              disabled={classifying}
+              title="Ask Claude to re-tag files whose kind is ambiguous from the filename"
+            >
+              {classifying ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Sparkles className="h-3 w-3" />
+              )}
+              Classify with AI
+            </Button>
+          )}
         </div>
       </CardHeader>
 
@@ -382,41 +465,72 @@ export function ClaimDropboxCard() {
 function FileRow({ entry }: { entry: FileEntry }) {
   const isFolder = entry.kind === "folder";
   const sizeKb = entry.size ? Math.round(entry.size / 1024) : null;
+  // AI kind, when present, overrides the heuristic on the visible badge.
+  const shownKind = entry.ai_kind ?? entry.file_kind;
+  const aiOverridesHeuristic =
+    entry.ai_kind && entry.file_kind && entry.ai_kind !== entry.file_kind;
   return (
-    <div className="text-xs border-l-2 border-emerald-500/60 pl-2 flex items-center gap-2 flex-wrap">
-      {isFolder ? (
-        <Folder className="h-3 w-3 text-muted-foreground" />
-      ) : (
-        <Badge variant="outline" className="text-[10px]">
-          {entry.file_kind
-            ? (FILE_KIND_LABEL[entry.file_kind] ?? entry.file_kind)
-            : "File"}
-        </Badge>
-      )}
-      <a
-        href={entry.preview_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hover:underline font-medium truncate max-w-[320px]"
-      >
-        {entry.name}
-      </a>
-      <a
-        href={entry.preview_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-muted-foreground"
-        title="Open in Dropbox"
-      >
-        <ExternalLink className="h-3 w-3" />
-      </a>
-      {sizeKb !== null && (
-        <span className="text-[10px] text-muted-foreground">{sizeKb} KB</span>
-      )}
-      {entry.modified_at && (
-        <span className="text-[10px] text-muted-foreground">
-          {new Date(entry.modified_at).toLocaleDateString()}
-        </span>
+    <div
+      className="text-xs border-l-2 border-emerald-500/60 pl-2"
+      title={entry.ai_rationale}
+    >
+      <div className="flex items-center gap-2 flex-wrap">
+        {isFolder ? (
+          <Folder className="h-3 w-3 text-muted-foreground" />
+        ) : (
+          <Badge
+            variant="outline"
+            className={
+              "text-[10px] " +
+              (entry.ai_kind ? "text-emerald-500 border-emerald-500/50" : "")
+            }
+          >
+            {entry.ai_kind && (
+              <Sparkles className="h-2.5 w-2.5 mr-0.5 inline" />
+            )}
+            {shownKind ? (FILE_KIND_LABEL[shownKind] ?? shownKind) : "File"}
+          </Badge>
+        )}
+        <a
+          href={entry.preview_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline font-medium truncate max-w-[320px]"
+        >
+          {entry.name}
+        </a>
+        <a
+          href={entry.preview_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-muted-foreground"
+          title="Open in Dropbox"
+        >
+          <ExternalLink className="h-3 w-3" />
+        </a>
+        {sizeKb !== null && (
+          <span className="text-[10px] text-muted-foreground">{sizeKb} KB</span>
+        )}
+        {entry.modified_at && (
+          <span className="text-[10px] text-muted-foreground">
+            {new Date(entry.modified_at).toLocaleDateString()}
+          </span>
+        )}
+        {entry.ai_kind && typeof entry.ai_confidence === "number" && (
+          <span className="text-[10px] text-emerald-500">
+            AI {(entry.ai_confidence * 100).toFixed(0)}%
+          </span>
+        )}
+        {aiOverridesHeuristic && entry.file_kind && (
+          <span className="text-[10px] text-muted-foreground line-through">
+            {FILE_KIND_LABEL[entry.file_kind] ?? entry.file_kind}
+          </span>
+        )}
+      </div>
+      {entry.ai_rationale && (
+        <div className="text-[10px] text-muted-foreground italic mt-0.5 ml-1">
+          {entry.ai_rationale}
+        </div>
       )}
     </div>
   );

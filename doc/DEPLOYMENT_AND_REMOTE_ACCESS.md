@@ -348,6 +348,8 @@ npx supabase functions deploy daily-briefing           # Phase 13: morning brief
 npx supabase functions deploy daily-briefing-runner    # Phase 13: cron entrypoint
 npx supabase functions deploy verify-storm             # Phase 14: HailTrace / storm verification
 npx supabase functions deploy system-health            # Phase 15: integrations status read
+npx supabase functions deploy calendar-sync-runner     # Phase 16: cron entrypoint for calendar sync
+npx supabase functions deploy classify-dropbox-files   # Phase 16: AI Dropbox file classification
 ```
 
 ### Phase 15: Integrations page
@@ -355,6 +357,23 @@ npx supabase functions deploy system-health            # Phase 15: integrations 
 A consolidated **/integrations** page reads `system-health` (server-side env booleans only — never values) plus the per-user `gmail_connections` and `dropbox_connections` rows and renders one card per integration: Anthropic, Gmail, Calendar, Dropbox, HailTrace, Cron, State-law KB. Each card shows status (green / amber / red), a one-line description, and inline setup hints when something's missing. Use it as the first stop after deploying — anything red is missing a secret; anything amber needs a per-user click (e.g. reconnect Gmail to grant `calendar.events`).
 
 The page also includes Phase 15a — briefing history: every generated briefing now persists to `public.briefings` (RLS-scoped: anyone reads, owner writes), and `/briefing` shows the last 14 days as collapsible entries with summary counts.
+
+### Phase 16: calendar-sync runner + AI Dropbox classification
+
+**calendar-sync-runner** mirrors `gmail-triage-runner`: X-CRON-Secret authed, iterates every `gmail_connections` row that has the `calendar.events` scope, and dispatches `calendar-sync` per user with service-role auth + `X-Cron-Runner: true`. The user-facing `calendar-sync` now accepts that dual-auth path (with `sales_id` required in the body when running as cron). Schedule it the same way:
+
+```sql
+select cron.schedule(
+  'calendar-sync-hourly', '0 * * * *',
+  $$ select net.http_post(
+       url := 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/calendar-sync-runner',
+       headers := jsonb_build_object('Content-Type','application/json',
+                                     'X-CRON-Secret', current_setting('app.cron_secret')),
+       body := jsonb_build_object('lookahead_days', 30)
+     ); $$);
+```
+
+**classify-dropbox-files** upgrades the Phase 11 filename heuristics with a one-click AI batch pass. The Dropbox card on every Claim show page has a new **Classify with AI** button that sends the listed files' names + paths + the claim's loss type / DOL / state to Claude, which returns a kind + confidence + rationale per file. AI badges appear with a sparkle icon and a green tint; the heuristic's original badge stays available as a strikethrough next to the row so you can see where the AI changed its mind. No file content is fetched — names and paths only — so Dropbox API quota is untouched.
 
 ### How staff connect
 
