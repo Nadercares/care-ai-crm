@@ -1,13 +1,17 @@
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
+
 import { DataTable } from "@/components/admin/data-table";
 import { List } from "@/components/admin/list";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { SelectInput } from "@/components/admin/select-input";
 import { SearchInput } from "@/components/admin/search-input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 import { TopToolbar } from "../layout/TopToolbar";
 import { ConnectGmailCard } from "./ConnectGmailCard";
+import { EmailReplyDialog } from "./EmailReplyDialog";
 
 const URGENCY_VARIANT: Record<string, string> = {
   high: "text-red-500 border-red-500/50",
@@ -104,6 +108,9 @@ export function EmailTriageList() {
           </DataTable.Col>
           <DataTable.Col source="received_at" label="Received">
             <ReceivedCell />
+          </DataTable.Col>
+          <DataTable.Col label="">
+            <DraftReplyCell />
           </DataTable.Col>
         </DataTable>
       </List>
@@ -214,5 +221,37 @@ function ReceivedCell() {
         </a>
       )}
     </div>
+  );
+}
+
+function DraftReplyCell() {
+  const record = useRecordContext<TriageRecord>();
+  const [open, setOpen] = useState(false);
+  if (!record) return null;
+  return (
+    <>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(true);
+        }}
+      >
+        <Sparkles className="h-3 w-3" />
+        Draft reply
+      </Button>
+      {open && (
+        <EmailReplyDialog
+          triageId={record.id}
+          subject={record.subject ?? undefined}
+          fromName={record.from_name}
+          fromEmail={record.from_email}
+          open={open}
+          onOpenChange={setOpen}
+        />
+      )}
+    </>
   );
 }

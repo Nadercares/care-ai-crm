@@ -16,8 +16,11 @@ interface Connection {
   last_sync_error: string | null;
 }
 
+// gmail.modify is required for users.drafts.create (Phase 9 reply
+// drafting). It supersedes gmail.readonly. Users who connected with
+// the old read-only scope must reconnect to get draft saving.
 const GMAIL_SCOPES = [
-  "https://www.googleapis.com/auth/gmail.readonly",
+  "https://www.googleapis.com/auth/gmail.modify",
   "https://www.googleapis.com/auth/userinfo.email",
 ].join(" ");
 

@@ -338,6 +338,8 @@ The OAuth **client ID** is safe to expose in the browser; the **client secret** 
 npx supabase db push                          # creates gmail_connections + email_triage
 npx supabase functions deploy gmail-oauth-callback
 npx supabase functions deploy gmail-triage
+npx supabase functions deploy draft-email-reply        # AI reply drafter
+npx supabase functions deploy gmail-triage-runner      # cron entrypoint
 ```
 
 ### How staff connect
@@ -353,12 +355,61 @@ npx supabase functions deploy gmail-triage
 - **gmail_connections**: one row per staffer, with the Gmail refresh token and the connected email. Refresh tokens are stored in plaintext in the row — protected only by RLS (owner-only read/write). For higher-security firms, swap the column for a `pgsodium` encrypted equivalent before going live.
 - **email_triage**: one row per Gmail thread with AI classification (`claim_correspondence` / `new_lead` / `admin` / `marketing` / `spam` / `unknown`), urgency (`high` / `medium` / `low`), summary, suggested_action, ai_confidence, ai_rationale, and AI-detected links to `claim_id` / `contact_id` / `carrier_id` / `carrier_adjuster_id`. Bodies are NOT stored — only a ~4 KB excerpt for context.
 
+### AI reply drafting (Phase 9 follow-up)
+
+The `draft-email-reply` function generates a contextual reply for any triage row. The model sees the triage summary, the body excerpt, the last 3 messages on the Gmail thread, AND (when present) the linked claim's policy summary, recent estimates, and any settlement on file. It returns a structured draft with subject, body, tone label, the facts the draft relies on, and a confidence note. Staff edits in the dialog, then clicks **Save to Gmail drafts** — the function calls Gmail's `users.drafts.create` with the thread id so the draft attaches in-thread. The draft is **never sent**; staff opens Gmail, reviews, and sends from there.
+
+This requires the upgraded **`gmail.modify`** scope (instead of `gmail.readonly`). The frontend OAuth URL now requests `gmail.modify` + `userinfo.email`. Anyone who connected during the original Phase 9 ship must click **Reconnect** in the Gmail card so Google re-issues a refresh token with the new scope. The draft function checks the connection's stored scopes before allowing a Gmail save and returns a clear error if you forgot to reconnect.
+
+### Scheduled triage with cron
+
+The `gmail-triage-runner` function is the cron entrypoint. It accepts a shared secret in the `X-CRON-Secret` header, iterates every `gmail_connections` row whose `last_synced_at` is older than `stale_minutes` (default 15), and dispatches the existing `gmail-triage` function for each user — service-role authed, signed with a `X-Cron-Runner: true` header. The user-facing function recognizes that header path and skips JWT validation.
+
+Required secret on the Supabase project:
+
+```bash
+npx supabase secrets set CRON_SECRET=<a-random-string-stay-secret>
+```
+
+The simplest way to run it on a schedule is Supabase `pg_cron` calling out via the `pg_net` extension. In the Supabase SQL editor:
+
+```sql
+-- 1. One-time: enable the extensions.
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+-- 2. Stash the cron secret in a session setting your function can read.
+--    (Vault is the long-term right answer; this is the simple ship.)
+alter database postgres set "app.cron_secret" = 'PASTE_YOUR_CRON_SECRET_HERE';
+
+-- 3. Schedule the runner every 15 minutes.
+select cron.schedule(
+  'gmail-triage-every-15-min',
+  '*/15 * * * *',
+  $$
+  select net.http_post(
+    url := 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/gmail-triage-runner',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'X-CRON-Secret', current_setting('app.cron_secret')
+    ),
+    body := jsonb_build_object('stale_minutes', 15, 'limit_per_user', 25)
+  );
+  $$
+);
+
+-- to remove: select cron.unschedule('gmail-triage-every-15-min');
+```
+
+If you don't want pg_cron, point any external scheduler (Railway cron, GitHub Actions schedule, Vercel cron, cron-job.org) at the same URL with the same header.
+
 ### Scope limits and known gaps
 
-- **Read-only.** The deployed scope is `gmail.readonly`. Drafting replies (next session) needs `gmail.modify` — re-consent with the new scope before that ships.
-- **No cron yet.** Triage runs only on-demand via the "Run triage now" button. A scheduled runner via Supabase `pg_cron` or an external scheduler comes in the next session.
+- **Read + write scope.** With `gmail.modify` staff can have drafts saved to Gmail. The function NEVER calls `users.messages.send` — only `users.drafts.create`. Sending is always a human action in Gmail.
 - **Lookup pack is capped** at the 500 most recent carriers / contacts / carrier_adjusters and the 200 most recent claims. Larger firms need pagination or vector retrieval. Documented as a known limit.
 - **AI-detected CRM links are advisory.** The model can return null IDs when uncertain. Staff should verify before treating the link as authoritative.
+- **Refresh tokens stored in plaintext.** Under RLS, but plaintext. Swap to a `pgsodium`-encrypted column before high-security firms go live.
+- **Cron secret in `alter database … set` is readable** by anyone with database admin access. For multi-tenant or high-sensitivity setups, move it into Supabase Vault and read with `vault.decrypted_secrets`.
 
 ---
 

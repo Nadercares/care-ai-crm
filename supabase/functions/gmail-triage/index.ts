@@ -33,6 +33,7 @@ const ANTHROPIC_MODEL =
 const CLIENT_ID = Deno.env.get("GOOGLE_OAUTH_CLIENT_ID") ?? "";
 const CLIENT_SECRET = Deno.env.get("GOOGLE_OAUTH_CLIENT_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const PUBLISHABLE_KEY =
   Deno.env.get("SUPABASE_ANON_KEY") ??
   Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
@@ -148,24 +149,37 @@ Deno.serve(async (req) => {
     body = {};
   }
 
-  // Resolve caller → sales row.
-  const userClient = createClient(SUPABASE_URL, PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${userJwt}` } },
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { data: userResult } = await userClient.auth.getUser();
-  const userId = userResult?.user?.id;
-  if (!userId) return json({ error: "Invalid auth token" }, 401);
+  // Two auth paths:
+  // 1. User JWT (the normal "Run triage now" button).
+  // 2. Cron runner — Authorization: Bearer <service-role-key> plus the
+  //    X-Cron-Runner: true header. Required sales_id must be in body.
+  const isCronRunner =
+    req.headers.get("x-cron-runner") === "true" &&
+    SERVICE_ROLE_KEY !== "" &&
+    userJwt === SERVICE_ROLE_KEY;
 
   let salesId = body.sales_id;
-  if (!salesId) {
-    const { data: sales } = await userClient
-      .from("sales")
-      .select("id")
-      .eq("user_id", userId)
-      .single();
-    if (!sales) return json({ error: "No sales row for caller" }, 404);
-    salesId = sales.id;
+  if (isCronRunner) {
+    if (!salesId)
+      return json({ error: "Cron runner requires sales_id in body" }, 400);
+  } else {
+    const userClient = createClient(SUPABASE_URL, PUBLISHABLE_KEY, {
+      global: { headers: { Authorization: `Bearer ${userJwt}` } },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data: userResult } = await userClient.auth.getUser();
+    const userId = userResult?.user?.id;
+    if (!userId) return json({ error: "Invalid auth token" }, 401);
+
+    if (!salesId) {
+      const { data: sales } = await userClient
+        .from("sales")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+      if (!sales) return json({ error: "No sales row for caller" }, 404);
+      salesId = sales.id;
+    }
   }
 
   // Load the connection (service role bypasses RLS — we already
