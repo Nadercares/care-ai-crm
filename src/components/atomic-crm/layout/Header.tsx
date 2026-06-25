@@ -104,6 +104,13 @@ const Header = () => {
                     to="/carriers"
                     isActive={currentPath === "/carriers"}
                   />
+                  <NavigationTab
+                    label={translate("resources.email_triage.name", {
+                      smart_count: 2,
+                    })}
+                    to="/email_triage"
+                    isActive={currentPath === "/email_triage"}
+                  />
                 </nav>
               </div>
               <div className="flex items-center">

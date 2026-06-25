@@ -296,6 +296,72 @@ Railway redeploys on every push to the watched branch. To roll back, redeploy a 
 
 ---
 
+## 9b. Gmail integration (Phase 9)
+
+CARE AI can read each staff member's Gmail inbox, classify every thread by claim relevance and urgency, and link messages to the right CRM record. This is a per-user OAuth connection — each staffer connects their own Gmail.
+
+### One-time Google Cloud setup
+
+1. Go to **console.cloud.google.com → APIs & Services → Credentials**. Create (or reuse) a project for the firm.
+2. Enable APIs: **Gmail API** and **Google Calendar API** (Phase 9 only uses Gmail; Calendar is in the next phase).
+3. Configure the **OAuth consent screen**:
+   - User type: **Internal** if your firm is on Google Workspace (recommended — no Google verification needed). Otherwise External + add staff emails as test users.
+   - Authorized domains: the domain that hosts your CRM (e.g. `careai.example`).
+   - Scopes: add `https://www.googleapis.com/auth/gmail.readonly` and `https://www.googleapis.com/auth/userinfo.email`.
+4. Create an **OAuth 2.0 Client ID** of type **Web application**.
+   - Name: `CARE AI CRM — Gmail`
+   - Authorized redirect URI (EXACT match required):
+     `https://<your-supabase-project-ref>.supabase.co/functions/v1/gmail-oauth-callback`
+   - Save the **Client ID** and **Client secret**.
+
+### Supabase function secrets
+
+```bash
+npx supabase secrets set GOOGLE_OAUTH_CLIENT_ID=<client-id>
+npx supabase secrets set GOOGLE_OAUTH_CLIENT_SECRET=<client-secret>
+npx supabase secrets set GMAIL_OAUTH_REDIRECT_URI=https://<your-project-ref>.supabase.co/functions/v1/gmail-oauth-callback
+npx supabase secrets set APP_URL=https://crm.careai.example   # where to bounce users back after OAuth
+```
+
+### Frontend env var (publishable — exposed in the bundle)
+
+```bash
+# .env or Railway env
+VITE_GOOGLE_OAUTH_CLIENT_ID=<client-id>
+```
+
+The OAuth **client ID** is safe to expose in the browser; the **client secret** stays server-side in Supabase secrets only.
+
+### Deploy
+
+```bash
+npx supabase db push                          # creates gmail_connections + email_triage
+npx supabase functions deploy gmail-oauth-callback
+npx supabase functions deploy gmail-triage
+```
+
+### How staff connect
+
+1. Open **/email-triage** in the CRM.
+2. Click **Connect Gmail**.
+3. Pick the Google account, accept the consent screen.
+4. You're bounced back to /email-triage with the connection saved.
+5. Click **Run triage now** to classify the most recent 25 inbox threads.
+
+### What gets stored
+
+- **gmail_connections**: one row per staffer, with the Gmail refresh token and the connected email. Refresh tokens are stored in plaintext in the row — protected only by RLS (owner-only read/write). For higher-security firms, swap the column for a `pgsodium` encrypted equivalent before going live.
+- **email_triage**: one row per Gmail thread with AI classification (`claim_correspondence` / `new_lead` / `admin` / `marketing` / `spam` / `unknown`), urgency (`high` / `medium` / `low`), summary, suggested_action, ai_confidence, ai_rationale, and AI-detected links to `claim_id` / `contact_id` / `carrier_id` / `carrier_adjuster_id`. Bodies are NOT stored — only a ~4 KB excerpt for context.
+
+### Scope limits and known gaps
+
+- **Read-only.** The deployed scope is `gmail.readonly`. Drafting replies (next session) needs `gmail.modify` — re-consent with the new scope before that ships.
+- **No cron yet.** Triage runs only on-demand via the "Run triage now" button. A scheduled runner via Supabase `pg_cron` or an external scheduler comes in the next session.
+- **Lookup pack is capped** at the 500 most recent carriers / contacts / carrier_adjusters and the 200 most recent claims. Larger firms need pagination or vector retrieval. Documented as a known limit.
+- **AI-detected CRM links are advisory.** The model can return null IDs when uncertain. Staff should verify before treating the link as authoritative.
+
+---
+
 ## 10. Roadmap (what's next)
 
 Sequenced by priority — each item is its own focused build:

@@ -87,3 +87,15 @@ create policy "Settlements full access" on public.settlements for all to authent
 
 alter table public.state_law_summaries enable row level security;
 create policy "State law summaries full access" on public.state_law_summaries for all to authenticated using (true) with check (true);
+
+alter table public.gmail_connections enable row level security;
+create policy "Gmail connections: owner read" on public.gmail_connections for select to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Gmail connections: owner insert" on public.gmail_connections for insert to authenticated with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Gmail connections: owner update" on public.gmail_connections for update to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid())) with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Gmail connections: owner delete" on public.gmail_connections for delete to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid()));
+
+alter table public.email_triage enable row level security;
+create policy "Email triage: authenticated read" on public.email_triage for select to authenticated using (true);
+create policy "Email triage: owner insert" on public.email_triage for insert to authenticated with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Email triage: owner update" on public.email_triage for update to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid())) with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Email triage: owner delete" on public.email_triage for delete to authenticated using (sales_id in (select id from public.sales where user_id = auth.uid()));

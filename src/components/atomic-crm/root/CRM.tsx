@@ -24,6 +24,7 @@ import claims from "../claims";
 import policies from "../policies";
 import carriers from "../carriers";
 import carrierAdjusters from "../carrier_adjusters";
+import emailTriage from "../email-triage";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
@@ -275,6 +276,7 @@ const DesktopAdmin = (
       <Resource name="policies" {...policies} />
       <Resource name="carriers" {...carriers} />
       <Resource name="carrier_adjusters" {...carrierAdjusters} />
+      <Resource name="email_triage" {...emailTriage} />
       <Resource name="estimates" />
       <Resource name="estimate_line_items" />
       <Resource name="settlements" />

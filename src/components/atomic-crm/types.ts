@@ -461,3 +461,52 @@ export type StateLawSummary = {
   created_at?: string;
   updated_at?: string;
 } & Pick<RaRecord, "id">;
+
+// --- Gmail integration ---
+
+export type GmailConnection = {
+  sales_id: Identifier;
+  google_email: string;
+  refresh_token: string;
+  scopes?: string[];
+  last_synced_at?: string | null;
+  last_sync_status?: "ok" | "error" | "running" | null;
+  last_sync_error?: string | null;
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;
+
+export type EmailTriageClassification =
+  | "claim_correspondence"
+  | "new_lead"
+  | "admin"
+  | "marketing"
+  | "spam"
+  | "unknown";
+
+export type EmailTriageUrgency = "high" | "medium" | "low";
+export type EmailTriageStatus = "new" | "reviewed" | "archived" | "dismissed";
+
+export type EmailTriage = {
+  sales_id: Identifier;
+  gmail_thread_id: string;
+  latest_message_id?: string | null;
+  subject?: string | null;
+  from_email?: string | null;
+  from_name?: string | null;
+  snippet?: string | null;
+  body_excerpt?: string | null;
+  received_at?: string | null;
+  claim_id?: Identifier | null;
+  contact_id?: Identifier | null;
+  carrier_id?: Identifier | null;
+  carrier_adjuster_id?: Identifier | null;
+  classification?: EmailTriageClassification | string;
+  urgency?: EmailTriageUrgency | string;
+  summary?: string | null;
+  suggested_action?: string | null;
+  ai_confidence?: number | null;
+  ai_rationale?: string | null;
+  status: EmailTriageStatus | string;
+  created_at?: string;
+} & Pick<RaRecord, "id">;

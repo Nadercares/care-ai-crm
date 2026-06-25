@@ -12,6 +12,8 @@ const overrides: Record<string, string> = {
   "resources.carrier_adjusters.name": "Carrier adjuster |||| Carrier adjusters",
   "resources.estimates.name": "Estimate |||| Estimates",
   "resources.settlements.name": "Settlement |||| Settlements",
+  "resources.email_triage.name": "Email |||| Email triage",
+  "resources.email_triage.forcedCaseName": "Email",
 };
 
 export const careI18nProvider = {
