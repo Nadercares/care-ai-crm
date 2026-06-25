@@ -25,6 +25,7 @@ import policies from "../policies";
 import carriers from "../carriers";
 import carrierAdjusters from "../carrier_adjusters";
 import emailTriage from "../email-triage";
+import { PatternsPage } from "../patterns/PatternsPage";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
@@ -267,6 +268,7 @@ const DesktopAdmin = (
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
+        <Route path={PatternsPage.path} element={<PatternsPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />

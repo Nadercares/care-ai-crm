@@ -14,6 +14,7 @@ const overrides: Record<string, string> = {
   "resources.settlements.name": "Settlement |||| Settlements",
   "resources.email_triage.name": "Email |||| Email triage",
   "resources.email_triage.forcedCaseName": "Email",
+  "crm.patterns.nav": "Patterns",
 };
 
 export const careI18nProvider = {

@@ -111,6 +111,11 @@ const Header = () => {
                     to="/email_triage"
                     isActive={currentPath === "/email_triage"}
                   />
+                  <NavigationTab
+                    label={translate("crm.patterns.nav")}
+                    to="/patterns"
+                    isActive={currentPath === "/patterns"}
+                  />
                 </nav>
               </div>
               <div className="flex items-center">
