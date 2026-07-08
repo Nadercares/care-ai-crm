@@ -1,5 +1,13 @@
 # AGENTS.md
 
+## Second Brain (business operating system)
+
+The `second-brain/` folder is the AI operating system for the CARE AI
+business (SOPs, context, client intelligence, linked notes). For any
+business task — content, client work, pipeline review, research — read
+`second-brain/CLAUDE.md` first and follow its context loading priority
+and standing rules. The rest of this file covers the CRM codebase itself.
+
 ## Project Overview
 
 Atomic CRM is a full-featured CRM built with React, shadcn-admin-kit, and Supabase. It provides contact management, task tracking, notes, email capture, and deal management with a Kanban board.
