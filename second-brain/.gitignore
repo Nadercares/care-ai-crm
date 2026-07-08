@@ -1,0 +1,12 @@
+# Secrets never get committed
+.env
+
+# Scratch space for drafts
+.tmp/
+
+# Obsidian UI state, not business memory
+.obsidian/
+
+# Python
+__pycache__/
+*.pyc
